@@ -1,16 +1,49 @@
-# React + Vite
+# Real-Time Crypto Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a responsive single-page application built with React and Vite that displays real-time cryptocurrency prices from the Binance API. The project was developed as part of a technical build challenge.
 
-Currently, two official plugins are available:
+## Live Demo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+[https://crypto-tracker-challenge.vercel.app/](https://crypto-tracker-challenge.vercel.app/)
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Live Market Data**: Displays a list of cryptocurrencies with real-time prices and 24-hour percentage change.
+- **Mandatory First Pair**: The Vanry/USDT pair is always displayed as the first item on the list.
+- **Detail View**: Clicking any coin opens a detailed view with a 30-day historical price chart.
+- **Search & Sort**: Includes a search bar for quick lookups and options to sort by name, price, or 24h change.
+- **Responsive Design**: A clean, professional UI built with Tailwind CSS that works on all devices.
+- **Dark/Light Mode**: A theme toggle for user preference.
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React
+- Vite
+- Tailwind CSS
+- Recharts
+- Hosted on Vercel
+
+## How to Run Locally
+
+<details>
+<summary><strong>Click to expand instructions</strong></summary>
+
+### Clone the repository:
+```bash
+git clone https://github.com/<YOUR_USERNAME>/crypto-tracker-challenge.git
+cd crypto-tracker-challenge
+Install dependencies:
+bash
+Copy code
+npm install
+Install the charting library:
+bash
+Copy code
+npm install recharts
+Run the development server:
+bash
+Copy code
+npm run dev
+The application will be available at http://localhost:5173.
+
+</details>
