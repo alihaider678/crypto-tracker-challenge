@@ -28,7 +28,8 @@ This is a responsive single-page application built with React and Vite that disp
 <details>
 <summary><strong>Click to expand instructions</strong></summary>
 
-### Clone the repository:
+### Clone the repository
+
 ```bash
 git clone https://github.com/<YOUR_USERNAME>/crypto-tracker-challenge.git
 cd crypto-tracker-challenge
