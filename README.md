@@ -34,17 +34,12 @@ This is a responsive single-page application built with React and Vite that disp
 git clone https://github.com/<YOUR_USERNAME>/crypto-tracker-challenge.git
 cd crypto-tracker-challenge
 Install dependencies:
-bash
-Copy code
 npm install
-Install the charting library:
-bash
-Copy code
-npm install recharts
-Run the development server:
-bash
-Copy code
-npm run dev
-The application will be available at http://localhost:5173.
 
-</details>
+Install the charting library:
+npm install recharts
+
+Run the development server:
+npm run dev
+
+The application will be available at http://localhost:5173.
