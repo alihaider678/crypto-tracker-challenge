@@ -1,4 +1,4 @@
-import { coinName, pairLabel, parseSymbol } from "./symbols";
+import { coinName, isStablePair, pairLabel, parseSymbol } from "./symbols";
 import type { BinanceMiniTicker, BinanceTicker24hr, Ticker } from "./types";
 
 /** Always shown first when it matches the current filter. */
@@ -172,6 +172,87 @@ export function selectMarketView(
   return pinSymbolFirst(sortTickers(filterTickers(list, filter), sort), pinned);
 }
 
+// --- Paging and quotes --------------------------------------------------
+
+export type Page<T> = {
+  items: T[];
+  /** 1-based, clamped to the available pages. */
+  page: number;
+  pageCount: number;
+  total: number;
+  /** 1-based index of the first item on this page; 0 when empty. */
+  from: number;
+  /** 1-based index of the last item on this page; 0 when empty. */
+  to: number;
+};
+
+export const PAGE_SIZE = 50;
+
+export function paginate<T>(
+  list: T[],
+  page: number,
+  pageSize: number = PAGE_SIZE,
+): Page<T> {
+  const total = list.length;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const current = Math.min(
+    Math.max(1, Number.isFinite(page) ? Math.floor(page) : 1),
+    pageCount,
+  );
+  const start = (current - 1) * pageSize;
+  const items = list.slice(start, start + pageSize);
+  return {
+    items,
+    page: current,
+    pageCount,
+    total,
+    from: items.length ? start + 1 : 0,
+    to: start + items.length,
+  };
+}
+
+/** Quote filter pills shown up front, in this order, if they have enough pairs. */
+export const PRIMARY_QUOTES = [
+  "USDT",
+  "USDC",
+  "FDUSD",
+  "BTC",
+  "ETH",
+  "BNB",
+  "TRY",
+  "EUR",
+] as const;
+
+export type QuoteOption = { quote: string; count: number };
+
+/**
+ * Splits the quotes present in `list` into the pills shown up front and the
+ * rest (for a "More" menu, busiest first). A primary quote needs at least
+ * `minPairs` listed pairs to get a pill.
+ */
+export function groupQuotes(
+  list: Ticker[],
+  { minPairs = 5 }: { minPairs?: number } = {},
+): { primary: QuoteOption[]; more: QuoteOption[] } {
+  const counts = new Map<string, number>();
+  for (const t of list) {
+    counts.set(t.quoteAsset, (counts.get(t.quoteAsset) ?? 0) + 1);
+  }
+
+  const primary: QuoteOption[] = [];
+  for (const quote of PRIMARY_QUOTES) {
+    const count = counts.get(quote) ?? 0;
+    if (count >= minPairs) primary.push({ quote, count });
+  }
+  const shown = new Set(primary.map((o) => o.quote));
+  const more = [...counts]
+    .filter(([quote]) => !shown.has(quote))
+    .map(([quote, count]) => ({ quote, count }))
+    .sort((a, b) => b.count - a.count || a.quote.localeCompare(b.quote));
+
+  return { primary, more };
+}
+
 // --- Overview -----------------------------------------------------------
 
 export type TopMovers = {
@@ -183,13 +264,16 @@ export type TopMovers = {
 /**
  * Top gainers, losers and volume within one quote asset. Volumes in
  * different quotes (USDT vs TRY) aren't comparable, so a quote is required.
- * Halted pairs are excluded: their 24h change is frozen, not today's.
+ * Excluded: halted pairs (their 24h change is frozen, not today's) and
+ * stablecoin/stablecoin pairs (USDC/USDT would always top volume).
  */
 export function topMovers(
   list: Ticker[],
   { quote = "USDT", limit = 5 }: { quote?: string; limit?: number } = {},
 ): TopMovers {
-  const pool = list.filter((t) => t.quoteAsset === quote && isListed(t));
+  const pool = list.filter(
+    (t) => t.quoteAsset === quote && isListed(t) && !isStablePair(t),
+  );
   return {
     gainers: sortTickers(
       pool.filter((t) => t.priceChangePercent > 0),
@@ -248,4 +332,26 @@ export function mergeMiniTickers(
     return applyMiniTicker(t, m);
   });
   return changed ? next : list;
+}
+
+export type TickDirection = "up" | "down" | null;
+
+/** Which way a price moved between two renders; null if it didn't. */
+export function tickDirection(prev: number, next: number): TickDirection {
+  if (!Number.isFinite(prev) || !Number.isFinite(next) || prev === next) {
+    return null;
+  }
+  return next > prev ? "up" : "down";
+}
+
+export type ChangeDirection = "up" | "down" | "flat";
+
+/**
+ * Direction of a 24h % change as displayed (2 decimals), so a -0.001% move
+ * reads as flat everywhere. The badge and the sparkline both use this.
+ */
+export function changeDirection(percent: number): ChangeDirection {
+  const rounded = Math.round(percent * 100);
+  if (!Number.isFinite(rounded) || rounded === 0) return "flat";
+  return rounded > 0 ? "up" : "down";
 }

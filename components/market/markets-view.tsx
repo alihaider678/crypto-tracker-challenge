@@ -1,0 +1,120 @@
+"use client";
+
+import { useMemo } from "react";
+import { SearchX } from "lucide-react";
+
+import { EmptyState } from "@/components/feedback/empty-state";
+import { ErrorState } from "@/components/feedback/error-state";
+import { TableSkeleton } from "@/components/feedback/table-skeleton";
+import { Button } from "@/components/ui/button";
+import { useLiveTickers } from "@/hooks/useLiveTickers";
+import { useMarketParams } from "@/hooks/useMarketParams";
+import { useTickers } from "@/hooks/useTickers";
+import {
+  PRIMARY_QUOTES,
+  groupQuotes,
+  paginate,
+  selectMarketView,
+} from "@/lib/market";
+import {
+  clearMarketFilters,
+  hasActiveFilters,
+  updateMarketParams,
+} from "@/lib/market-params";
+import { useWatchlistHydration } from "@/store/watchlist";
+
+import { LiveStatusNotice } from "./live-status-notice";
+import { MarketPagination } from "./market-pagination";
+import { MarketTable } from "./market-table";
+import { MarketToolbar } from "./market-toolbar";
+
+// Before data arrives, show the usual pills so the toolbar doesn't jump.
+const PLACEHOLDER_QUOTES = {
+  primary: PRIMARY_QUOTES.map((quote) => ({ quote, count: 0 })),
+  more: [],
+};
+
+export function MarketsView() {
+  const { params, setParams, navigate, hrefFor } = useMarketParams();
+  const tickers = useTickers();
+  const status = useLiveTickers();
+  useWatchlistHydration();
+
+  const data = tickers.data;
+  const quotes = useMemo(
+    () => (data ? groupQuotes(data) : PLACEHOLDER_QUOTES),
+    [data],
+  );
+  const view = useMemo(
+    () =>
+      data
+        ? selectMarketView(data, {
+            query: params.q,
+            quote: params.quote,
+            direction: params.dir,
+            sort: params.sort,
+          })
+        : [],
+    [data, params.q, params.quote, params.dir, params.sort],
+  );
+  const page = paginate(view, params.page);
+
+  let body: React.ReactNode;
+  if (!data && tickers.isError) {
+    body = (
+      <ErrorState
+        message={
+          tickers.error instanceof Error ? tickers.error.message : undefined
+        }
+        onRetry={() => void tickers.refetch()}
+        retrying={tickers.isFetching}
+      />
+    );
+  } else if (!data) {
+    body = <TableSkeleton rows={12} />;
+  } else if (view.length === 0) {
+    body = (
+      <EmptyState
+        icon={SearchX}
+        title="No coins match your search"
+        description={
+          params.q
+            ? `Nothing matches “${params.q}” with the current filters.`
+            : "No pairs match the current filters."
+        }
+        action={
+          hasActiveFilters(params) && (
+            <Button variant="outline" onClick={() => navigate(clearMarketFilters(params))}>
+              Clear filters
+            </Button>
+          )
+        }
+      />
+    );
+  } else {
+    body = (
+      <div className="space-y-4">
+        <MarketTable
+          rows={page.items}
+          firstRank={page.from}
+          sort={params.sort}
+          onSort={(sort) => setParams({ sort })}
+        />
+        <MarketPagination
+          {...page}
+          hrefForPage={(p) => hrefFor(updateMarketParams(params, { page: p }))}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <MarketToolbar params={params} quotes={quotes} onChange={setParams} />
+      {data && (
+        <LiveStatusNotice status={status} lastUpdatedAt={tickers.dataUpdatedAt} />
+      )}
+      {body}
+    </div>
+  );
+}

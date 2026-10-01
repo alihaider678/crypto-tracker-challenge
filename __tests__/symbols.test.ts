@@ -6,6 +6,8 @@ import {
   SYMBOL_NAME_MAP,
   coinIconUrl,
   coinName,
+  isStablePair,
+  isStablecoin,
   isUsdQuote,
   pairLabel,
   parseSymbol,
@@ -138,5 +140,23 @@ describe("pairLabel / isUsdQuote", () => {
     expect(isUsdQuote("FDUSD")).toBe(true);
     expect(isUsdQuote("BTC")).toBe(false);
     expect(isUsdQuote("EUR")).toBe(false);
+  });
+});
+
+describe("stablecoins", () => {
+  it("recognizes stablecoins", () => {
+    expect(isStablecoin("USDC")).toBe(true);
+    expect(isStablecoin("FDUSD")).toBe(true);
+    expect(isStablecoin("BTC")).toBe(false);
+  });
+
+  it.each([
+    ["USDCUSDT", true],
+    ["FDUSDUSDT", true],
+    ["USDTUSD", true],
+    ["BTCUSDT", false],
+    ["USDTTRY", false],
+  ])("%s stable pair: %s", (symbol, expected) => {
+    expect(isStablePair(parseSymbol(symbol)!)).toBe(expected);
   });
 });

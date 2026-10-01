@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatCompact,
+  formatDate,
+  formatTime,
   formatInteger,
   formatPercent,
   formatPrice,
@@ -115,5 +117,23 @@ describe("formatInteger", () => {
   it("groups thousands", () => {
     expect(formatInteger(75293)).toBe("75,293");
     expect(formatInteger(Number.NaN)).toBe("—");
+  });
+});
+
+describe("formatDate / formatTime", () => {
+  // VANRYUSDT's last trade
+  const ms = Date.UTC(2026, 8, 9, 6, 9, 8);
+
+  it("formats a short date", () => {
+    expect(formatDate(ms, { timeZone: "UTC" })).toBe("Sep 9, 2026");
+  });
+
+  it("formats a 24-hour time", () => {
+    expect(formatTime(ms, { timeZone: "UTC" })).toBe("06:09:08");
+  });
+
+  it("handles bad input", () => {
+    expect(formatDate(Number.NaN)).toBe("—");
+    expect(formatTime(Number.NaN)).toBe("—");
   });
 });

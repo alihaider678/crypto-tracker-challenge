@@ -48,6 +48,37 @@ const USD_QUOTES = new Set<string>([
   "USDS",
 ]);
 
+/** Stablecoins (dollar and euro pegged), current and retired. */
+const STABLECOINS = new Set<string>([
+  "USDT",
+  "USDC",
+  "FDUSD",
+  "USD1",
+  "RLUSD",
+  "USDS",
+  "USDP",
+  "TUSD",
+  "BUSD",
+  "DAI",
+  "PYUSD",
+  "EURI",
+  "AEUR",
+]);
+
+export function isStablecoin(asset: string): boolean {
+  return STABLECOINS.has(asset);
+}
+
+/**
+ * A stablecoin priced in a stablecoin or plain USD (USDC/USDT, USDT/USD).
+ * These barely move and dominate volume, so top movers skip them.
+ */
+export function isStablePair({ baseAsset, quoteAsset }: ParsedSymbol): boolean {
+  return (
+    isStablecoin(baseAsset) && (isStablecoin(quoteAsset) || quoteAsset === "USD")
+  );
+}
+
 export type ParsedSymbol = { baseAsset: string; quoteAsset: string };
 
 const SYMBOL_PATTERN = /^[A-Z0-9]+$/;

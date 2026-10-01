@@ -4,15 +4,19 @@ import {
   LEGACY_SORT_KEYS,
   PINNED_SYMBOL,
   applyMiniTicker,
+  changeDirection,
   filterTickers,
+  groupQuotes,
   isListed,
   listedTickers,
   mergeMiniTickers,
   normalizeTicker,
   normalizeTickers,
+  paginate,
   pinSymbolFirst,
   selectMarketView,
   sortTickers,
+  tickDirection,
   topMovers,
   type SortKey,
 } from "@/lib/market";
@@ -250,6 +254,18 @@ describe("topMovers", () => {
     expect(v).toEqual([...v].sort((a, b) => b - a));
   });
 
+  it("excludes stablecoin/stablecoin pairs (USDC/USDT would top volume)", () => {
+    const all = [...movers.gainers, ...movers.losers, ...movers.volume];
+    expect(symbols(all)).not.toContain("USDCUSDT");
+    expect(symbols(all)).not.toContain("FDUSDUSDT");
+  });
+
+  it("keeps stablecoin pairs searchable in Markets", () => {
+    expect(
+      symbols(selectMarketView(LISTED, { query: "usdc", sort: "name_asc" })),
+    ).toContain("USDCUSDT");
+  });
+
   it("excludes halted pairs (a frozen -37% is not today's top loser)", () => {
     for (const t of [...movers.gainers, ...movers.losers, ...movers.volume]) {
       expect(t.halted).toBe(false);
@@ -315,5 +331,78 @@ describe("live mini-ticker merge", () => {
     expect(
       mergeMiniTickers(list, new Map([["NOPEUSDT", mini({ s: "NOPEUSDT" })]])),
     ).toBe(list);
+  });
+});
+
+describe("paginate", () => {
+  const items = Array.from({ length: 120 }, (_, i) => i);
+
+  it("slices 50 per page", () => {
+    expect(paginate(items, 1)).toMatchObject({
+      page: 1,
+      pageCount: 3,
+      total: 120,
+      from: 1,
+      to: 50,
+    });
+    const last = paginate(items, 3);
+    expect(last.items).toHaveLength(20);
+    expect(last).toMatchObject({ from: 101, to: 120 });
+  });
+
+  it("clamps out-of-range pages", () => {
+    expect(paginate(items, 99).page).toBe(3);
+    expect(paginate(items, 0).page).toBe(1);
+    expect(paginate(items, Number.NaN).page).toBe(1);
+  });
+
+  it("handles an empty list", () => {
+    expect(paginate([], 4)).toEqual({
+      items: [],
+      page: 1,
+      pageCount: 1,
+      total: 0,
+      from: 0,
+      to: 0,
+    });
+  });
+});
+
+describe("groupQuotes", () => {
+  it("puts primary quotes with enough pairs up front, in fixed order", () => {
+    const { primary, more } = groupQuotes(LISTED, { minPairs: 2 });
+    const quotes = primary.map((o) => o.quote);
+    expect(quotes[0]).toBe("USDT");
+    // fixture: USDT majors plus a few BTC pairs
+    expect(quotes).toContain("BTC");
+    for (const o of more) expect(quotes).not.toContain(o.quote);
+  });
+
+  it("moves primary quotes below the threshold into More, busiest first", () => {
+    const { primary, more } = groupQuotes(LISTED, { minPairs: 1000 });
+    expect(primary).toEqual([]);
+    const counts = more.map((o) => o.count);
+    expect(counts).toEqual([...counts].sort((a, b) => b - a));
+    expect(more.reduce((n, o) => n + o.count, 0)).toBe(LISTED.length);
+  });
+});
+
+describe("tickDirection", () => {
+  it("reports up, down or no change", () => {
+    expect(tickDirection(1, 2)).toBe("up");
+    expect(tickDirection(2, 1)).toBe("down");
+    expect(tickDirection(1, 1)).toBeNull();
+    expect(tickDirection(Number.NaN, 1)).toBeNull();
+  });
+});
+
+describe("changeDirection", () => {
+  it("follows the displayed 2-decimal value", () => {
+    expect(changeDirection(0.03)).toBe("up");
+    expect(changeDirection(-1.53)).toBe("down");
+    expect(changeDirection(0)).toBe("flat");
+    expect(changeDirection(-0.004)).toBe("flat");
+    expect(changeDirection(0.005)).toBe("up");
+    expect(changeDirection(Number.NaN)).toBe("flat");
   });
 });

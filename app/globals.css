@@ -118,6 +118,28 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --default-transition-duration: 150ms;
   --default-transition-timing-function: var(--ease-out);
+
+  /* Price flash: 400ms tint when a live price ticks (use with motion-safe:) */
+  --animate-flash-up: flash-up 400ms ease-out;
+  --animate-flash-down: flash-down 400ms ease-out;
+
+  @keyframes flash-up {
+    from {
+      background-color: hsl(var(--positive-bg));
+    }
+    to {
+      background-color: transparent;
+    }
+  }
+
+  @keyframes flash-down {
+    from {
+      background-color: hsl(var(--negative-bg));
+    }
+    to {
+      background-color: transparent;
+    }
+  }
 }
 
 /* Prices and numbers: mono + tabular so digits don't jitter on live ticks. */

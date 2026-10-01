@@ -87,6 +87,43 @@ export function formatPercent(value: number): string {
   return `${percent.format(value)}%`;
 }
 
+const dateFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function dateTime(
+  key: string,
+  options: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormat {
+  let f = dateFormatters.get(key);
+  if (!f) {
+    f = new Intl.DateTimeFormat(LOCALE, options);
+    dateFormatters.set(key, f);
+  }
+  return f;
+}
+
+/** "Sep 9, 2026". Pass timeZone for deterministic output (tests, SSR). */
+export function formatDate(ms: number, { timeZone }: { timeZone?: string } = {}): string {
+  if (!Number.isFinite(ms)) return EMPTY;
+  return dateTime(`date:${timeZone ?? ""}`, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone,
+  }).format(ms);
+}
+
+/** "14:03:22", 24-hour. */
+export function formatTime(ms: number, { timeZone }: { timeZone?: string } = {}): string {
+  if (!Number.isFinite(ms)) return EMPTY;
+  return dateTime(`time:${timeZone ?? ""}`, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+    timeZone,
+  }).format(ms);
+}
+
 /** Whole numbers with grouping, e.g. trade counts. */
 export function formatInteger(value: number): string {
   if (!Number.isFinite(value)) return EMPTY;
