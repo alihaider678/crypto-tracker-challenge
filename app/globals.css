@@ -1,0 +1,170 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design tokens (CRYPTO_DASHBOARD_REDESIGN.md §4.1). Values are HSL channels
+ * so they can take an alpha: hsl(var(--primary) / 0.2).
+ *
+ * Naming vs. the spec:
+ *   - The spec's teal "--accent" lives in --primary (and --ring), because
+ *     shadcn uses --accent for neutral hover fills in menus and lists.
+ *   - shadcn's --accent points at --elevated.
+ *
+ * Dark is the only theme for now; light values arrive in Phase 7.
+ */
+:root {
+  /* surfaces */
+  --background: 222 24% 6%;
+  --surface: 222 22% 9%;
+  --elevated: 222 20% 12%;
+  --border: 222 16% 18%;
+
+  /* text */
+  --foreground: 220 20% 96%;
+  --muted-foreground: 220 11% 62%;
+
+  /* brand / interactive (teal) */
+  --primary: 172 66% 50%;
+  --primary-foreground: 222 24% 6%;
+  --ring: 172 66% 50%;
+
+  /* semantic market colors: price movement ONLY */
+  --positive: 152 69% 45%;
+  --negative: 0 84% 62%;
+  --positive-bg: 152 69% 45% / 0.12;
+  --negative-bg: 0 84% 62% / 0.12;
+
+  /* shadcn aliases, all derived from the tokens above */
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--elevated);
+  --popover-foreground: var(--foreground);
+  --secondary: var(--elevated);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--elevated);
+  --accent: var(--elevated);
+  --accent-foreground: var(--foreground);
+  --destructive: var(--negative);
+  --input: var(--border);
+
+  --radius: 8px;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-surface: hsl(var(--surface));
+  --color-elevated: hsl(var(--elevated));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-foreground: hsl(var(--foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-positive: hsl(var(--positive));
+  --color-negative: hsl(var(--negative));
+  --color-positive-bg: hsl(var(--positive-bg));
+  --color-negative-bg: hsl(var(--negative-bg));
+
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+
+  /* Type scale §4.2: 12 / 14 / 16 / 20 / 28 / 40 / 48. Nothing else exists. */
+  --text-*: initial;
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 14px;
+  --text-sm--line-height: 20px;
+  --text-base: 16px;
+  --text-base--line-height: 1.6;
+  --text-lg: 20px;
+  --text-lg--line-height: 28px;
+  --text-xl: 28px;
+  --text-xl--line-height: 36px;
+  --text-2xl: 40px;
+  --text-2xl--line-height: 48px;
+  --text-3xl: 48px;
+  --text-3xl--line-height: 56px;
+
+  /* Radius §4.3: 8px controls and rows, 12px cards, pills. */
+  --radius-*: initial;
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: 12px;
+  --radius-2xl: 12px;
+  --radius-3xl: 9999px;
+  --radius-4xl: 9999px;
+
+  /* Motion §4.3 */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: var(--ease-out);
+}
+
+/* Prices and numbers: mono + tabular so digits don't jitter on live ticks. */
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Centered 1280px content column with 16px mobile / 24-32px desktop gutters. */
+@utility container-page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1280px;
+  padding-inline: 16px;
+  @media (width >= 48rem) {
+    padding-inline: 24px;
+  }
+  @media (width >= 80rem) {
+    padding-inline: 32px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground text-sm antialiased md:text-base;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
