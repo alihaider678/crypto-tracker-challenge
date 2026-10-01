@@ -295,6 +295,40 @@ export function topMovers(
   };
 }
 
+export type OverviewData = {
+  /** Listed pairs, VANRY included. */
+  pairsTracked: number;
+  movers: TopMovers;
+  topGainer: Ticker | null;
+  topLoser: Ticker | null;
+  topVolume: Ticker | null;
+};
+
+/**
+ * Everything the Overview page shows about the market, from the listed
+ * pairs. Movers are USDT-quoted and exclude halted and stable/stable pairs
+ * (see topMovers).
+ */
+export function overviewData(listed: Ticker[], limit = 5): OverviewData {
+  const movers = topMovers(listed, { quote: "USDT", limit });
+  return {
+    pairsTracked: listed.length,
+    movers,
+    topGainer: movers.gainers[0] ?? null,
+    topLoser: movers.losers[0] ?? null,
+    topVolume: movers.volume[0] ?? null,
+  };
+}
+
+/** Tickers for `symbols`, in that order; null where a pair isn't listed. */
+export function pickBySymbol(
+  list: Ticker[],
+  symbols: readonly string[],
+): (Ticker | null)[] {
+  const bySymbol = new Map(list.map((t) => [t.symbol, t]));
+  return symbols.map((s) => bySymbol.get(s) ?? null);
+}
+
 // --- Live updates -------------------------------------------------------
 
 /**

@@ -13,13 +13,17 @@ export function Sparkline({
   height,
   trend,
   muted = false,
+  fluid = false,
   className,
 }: {
   values: number[];
+  /** Drawing size; with `fluid`, only the aspect used for the path. */
   width: number;
   height: number;
   trend?: ChangeDirection;
   muted?: boolean;
+  /** Stretch to fill the parent box (the stroke keeps its width). */
+  fluid?: boolean;
   className?: string;
 }) {
   const direction = trend ?? seriesTrend(values);
@@ -27,9 +31,10 @@ export function Sparkline({
 
   return (
     <svg
-      width={width}
-      height={height}
+      width={fluid ? "100%" : width}
+      height={fluid ? "100%" : height}
       viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio={fluid ? "none" : undefined}
       aria-hidden
       className={cn(
         "overflow-visible",

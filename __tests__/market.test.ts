@@ -13,7 +13,9 @@ import {
   mergeMiniTickers,
   normalizeTicker,
   normalizeTickers,
+  overviewData,
   paginate,
+  pickBySymbol,
   pinSymbolFirst,
   selectMarketView,
   sortTickers,
@@ -415,5 +417,57 @@ describe("isTradingHalted", () => {
     expect(isTradingHalted(ALL.find((t) => t.symbol === PINNED_SYMBOL)!)).toBe(true);
     expect(isTradingHalted({ ...btc, lastPrice: 0 })).toBe(true);
     expect(isTradingHalted({ ...btc, tradeCount: 0 })).toBe(true);
+  });
+});
+
+describe("overviewData", () => {
+  const data = overviewData(LISTED);
+
+  it("counts listed pairs (VANRY included)", () => {
+    expect(data.pairsTracked).toBe(LISTED.length);
+  });
+
+  it("takes headline movers from the USDT movers lists", () => {
+    const movers = topMovers(LISTED, { quote: "USDT", limit: 5 });
+    expect(data.movers).toEqual(movers);
+    expect(data.topGainer).toBe(movers.gainers[0] ?? null);
+    expect(data.topLoser).toBe(movers.losers[0] ?? null);
+    expect(data.topVolume).toBe(movers.volume[0] ?? null);
+  });
+
+  it("never picks halted or stable/stable pairs", () => {
+    for (const t of [data.topGainer, data.topLoser, data.topVolume]) {
+      expect(t).not.toBeNull();
+      expect(t!.halted).toBe(false);
+      expect(t!.quoteAsset).toBe("USDT");
+      expect(["USDCUSDT", "FDUSDUSDT", PINNED_SYMBOL]).not.toContain(t!.symbol);
+    }
+  });
+
+  it("is empty-safe", () => {
+    expect(overviewData([])).toEqual({
+      pairsTracked: 0,
+      movers: { gainers: [], losers: [], volume: [] },
+      topGainer: null,
+      topLoser: null,
+      topVolume: null,
+    });
+  });
+});
+
+describe("pickBySymbol", () => {
+  it("returns tickers in the requested order, null when missing", () => {
+    const picked = pickBySymbol(LISTED, ["ETHUSDT", "NOPEUSDT", "BTCUSDT", PINNED_SYMBOL]);
+    expect(picked.map((t) => t?.symbol ?? null)).toEqual([
+      "ETHUSDT",
+      null,
+      "BTCUSDT",
+      PINNED_SYMBOL,
+    ]);
+  });
+
+  it("keeps object identity (memoized rows)", () => {
+    const btc = LISTED.find((t) => t.symbol === "BTCUSDT");
+    expect(pickBySymbol(LISTED, ["BTCUSDT"])[0]).toBe(btc);
   });
 });
