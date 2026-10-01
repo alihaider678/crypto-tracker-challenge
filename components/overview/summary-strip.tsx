@@ -19,7 +19,9 @@ export function SummaryStrip({ data }: { data: OverviewData }) {
       <dl className={STRIP}>
         <div className={CELL}>
           <dt className="text-xs text-muted-foreground">Pairs tracked</dt>
-          <dd className="num text-xl font-semibold">{formatInteger(data.pairsTracked)}</dd>
+          <dd className="text-xl font-semibold tracking-[-0.01em] tabular-nums">
+            {formatInteger(data.pairsTracked)}
+          </dd>
         </div>
         <MoverCell label="Top gainer" ticker={data.topGainer} value="change" />
         <MoverCell label="Top loser" ticker={data.topLoser} value="change" />

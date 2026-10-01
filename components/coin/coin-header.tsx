@@ -47,7 +47,7 @@ export function CoinHeader({ ticker: t, halted }: { ticker: Ticker; halted: bool
             {t.symbol === PINNED_SYMBOL && <FeaturedBadge />}
             {halted && <HaltedBadge />}
           </div>
-          <p className="num text-sm text-muted-foreground">{label}</p>
+          <p className="text-sm text-muted-foreground">{label}</p>
         </div>
         <StarButton symbol={t.symbol} label={label} />
       </div>

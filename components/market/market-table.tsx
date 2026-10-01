@@ -182,7 +182,7 @@ const MarketRow = memo(function MarketRow({
       <TableCell className={cn(CELL_CLASS, COLUMN_CLASS.star)}>
         <StarButton symbol={t.symbol} label={label} />
       </TableCell>
-      <TableCell className={cn(CELL_CLASS, COLUMN_CLASS.rank, "num text-xs text-muted-foreground")}>
+      <TableCell className={cn(CELL_CLASS, COLUMN_CLASS.rank, "text-xs text-muted-foreground tabular-nums")}>
         {rank}
       </TableCell>
       <TableCell

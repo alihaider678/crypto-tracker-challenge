@@ -329,6 +329,19 @@ export function pickBySymbol(
   return symbols.map((s) => bySymbol.get(s) ?? null);
 }
 
+/**
+ * Where `price` sits in the 24h low..high range, from 0 to 1, for a range
+ * bar. Clamped, because a live tick can briefly run past the 24h stats.
+ * A flat range sits in the middle; invalid input gives null.
+ */
+export function rangePosition(low: number, high: number, price: number): number | null {
+  if (![low, high, price].every(Number.isFinite) || high < low || !(high > 0)) {
+    return null;
+  }
+  if (high === low) return 0.5;
+  return Math.min(1, Math.max(0, (price - low) / (high - low)));
+}
+
 // --- Live updates -------------------------------------------------------
 
 /**

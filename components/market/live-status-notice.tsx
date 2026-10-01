@@ -51,7 +51,7 @@ function DelayedNotice({
         </span>{" "}
         <span className="text-muted-foreground">
           Prices are from{" "}
-          <time className="num" dateTime={new Date(lastUpdatedAt).toISOString()}>
+          <time className="tabular-nums" dateTime={new Date(lastUpdatedAt).toISOString()}>
             {formatTime(lastUpdatedAt)}
           </time>{" "}
           and may be out of date.{" "}

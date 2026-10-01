@@ -16,6 +16,7 @@ import {
   overviewData,
   paginate,
   pickBySymbol,
+  rangePosition,
   pinSymbolFirst,
   selectMarketView,
   sortTickers,
@@ -469,5 +470,32 @@ describe("pickBySymbol", () => {
   it("keeps object identity (memoized rows)", () => {
     const btc = LISTED.find((t) => t.symbol === "BTCUSDT");
     expect(pickBySymbol(LISTED, ["BTCUSDT"])[0]).toBe(btc);
+  });
+});
+
+describe("rangePosition", () => {
+  it("places the price between low and high (0..1)", () => {
+    expect(rangePosition(10, 20, 15)).toBe(0.5);
+    expect(rangePosition(10, 20, 10)).toBe(0);
+    expect(rangePosition(10, 20, 20)).toBe(1);
+  });
+
+  it("clamps prices outside the range (live ticks can run ahead of 24h stats)", () => {
+    expect(rangePosition(10, 20, 25)).toBe(1);
+    expect(rangePosition(10, 20, 5)).toBe(0);
+  });
+
+  it("centers a flat range and rejects bad input", () => {
+    expect(rangePosition(10, 10, 10)).toBe(0.5);
+    expect(rangePosition(20, 10, 15)).toBeNull();
+    expect(rangePosition(Number.NaN, 20, 15)).toBeNull();
+    expect(rangePosition(0, 0, 0)).toBeNull();
+  });
+
+  it("matches VANRY's frozen numbers", () => {
+    const v = ALL.find((t) => t.symbol === PINNED_SYMBOL)!;
+    const pos = rangePosition(v.lowPrice, v.highPrice, v.lastPrice)!;
+    expect(pos).toBeGreaterThan(0);
+    expect(pos).toBeLessThan(0.1); // 0.00074 in 0.00071..0.001414
   });
 });

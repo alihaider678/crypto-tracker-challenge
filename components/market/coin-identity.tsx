@@ -86,7 +86,7 @@ export function CoinIdentity({
           {children}
         </div>
         <div className="truncate text-xs text-muted-foreground">
-          <span className="num">
+          <span>
             {baseAsset}/{quoteAsset}
           </span>
           {meta}

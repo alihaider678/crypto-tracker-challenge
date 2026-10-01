@@ -16,7 +16,7 @@ export function HaltedBanner({ lastTradeAt }: { lastTradeAt: number }) {
           No trades since{" "}
           {/* Local date and time; the server's timezone may differ. */}
           <time
-            className="num text-foreground"
+            className="text-foreground tabular-nums"
             dateTime={new Date(lastTradeAt).toISOString()}
             suppressHydrationWarning
           >

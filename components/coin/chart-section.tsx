@@ -82,7 +82,7 @@ export function ChartSection({
                 key={tf}
                 value={tf}
                 aria-label={TIMEFRAME_LABELS[tf]}
-                className="num px-3 text-xs data-active:bg-elevated"
+                className="px-3 text-xs tabular-nums data-active:bg-elevated"
               >
                 {tf}
               </TabsTrigger>
@@ -186,7 +186,7 @@ function ChartBody({
             <span className="font-medium">No recent trades.</span>{" "}
             <span className="text-muted-foreground">
               Last candle:{" "}
-              <time className="num" dateTime={new Date(note.lastCandleAt).toISOString()}>
+              <time className="tabular-nums" dateTime={new Date(note.lastCandleAt).toISOString()}>
                 {formatDate(note.lastCandleAt)}, {formatTime(note.lastCandleAt).slice(0, 5)}
               </time>
             </span>

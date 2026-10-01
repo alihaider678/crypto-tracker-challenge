@@ -48,7 +48,7 @@ export function SearchTrigger() {
       >
         <Search className="size-4" aria-hidden />
         <span className="flex-1 text-left">Search markets</span>
-        <kbd className="num rounded-sm border border-border bg-elevated px-1.5 text-xs text-muted-foreground">
+        <kbd className="rounded-sm border border-border bg-elevated px-1.5 text-xs text-muted-foreground">
           Ctrl K
         </kbd>
       </Link>

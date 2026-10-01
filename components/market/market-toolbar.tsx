@@ -275,7 +275,7 @@ function QuotePills({
                 {quotes.more.map((o) => (
                   <DropdownMenuRadioItem key={o.quote} value={o.quote}>
                     <span className="flex-1">{o.quote}</span>
-                    <span className="num text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground tabular-nums">
                       {o.count}
                     </span>
                   </DropdownMenuRadioItem>

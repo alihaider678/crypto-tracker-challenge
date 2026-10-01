@@ -16,9 +16,9 @@ export function CtaBand({
   return (
     <section
       aria-labelledby="cta-heading"
-      className="flex flex-col gap-6 rounded-xl border border-border bg-surface px-5 py-8 md:flex-row md:items-center md:justify-between md:px-8 md:py-10"
+      className="flex flex-col gap-6 rounded-xl border border-border bg-surface p-6 md:flex-row md:items-center md:justify-between md:gap-10 md:p-10"
     >
-      <div className="max-w-xl space-y-3">
+      <div className="max-w-2xl space-y-3">
         <h2 id="cta-heading" className="text-xl font-semibold tracking-[-0.01em]">
           {pairsTracked
             ? `See all ${formatInteger(pairsTracked)} pairs`

@@ -27,10 +27,10 @@ export function MarketPagination({
     >
       <p className="text-sm text-muted-foreground">
         Showing{" "}
-        <span className="num text-foreground">
+        <span className="text-foreground tabular-nums">
           {formatInteger(from)}–{formatInteger(to)}
         </span>{" "}
-        of <span className="num text-foreground">{formatInteger(total)}</span> pairs
+        of <span className="text-foreground tabular-nums">{formatInteger(total)}</span> pairs
       </p>
       {pageCount > 1 && (
         <div className="flex items-center gap-2">
@@ -41,7 +41,7 @@ export function MarketPagination({
             <ChevronLeft aria-hidden />
             Previous
           </PageLink>
-          <span className="num px-2 text-sm text-muted-foreground" aria-current="page">
+          <span className="px-2 text-sm text-muted-foreground tabular-nums" aria-current="page">
             {page} / {pageCount}
           </span>
           <PageLink

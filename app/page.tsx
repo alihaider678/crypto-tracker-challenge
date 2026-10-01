@@ -16,7 +16,7 @@ export default function OverviewPage() {
         <div className="space-y-5 lg:col-span-7">
           <h1
             id="hero-heading"
-            className="max-w-2xl text-2xl font-bold tracking-[-0.02em] md:text-3xl"
+            className="max-w-2xl text-2xl font-bold tracking-[-0.02em] text-balance md:text-3xl"
           >
             Crypto prices you can read at a glance.
           </h1>

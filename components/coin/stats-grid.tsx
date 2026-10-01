@@ -17,7 +17,7 @@ export function StatsGrid({ ticker: t, halted }: { ticker: Ticker; halted: boole
       value: isUsdQuote(quote) ? quoteVolume : `${quoteVolume} ${quote}`,
     },
     { label: "Open price (24h)", value: formatPrice(t.openPrice, { quote }) },
-    { label: "Trades (24h)", value: formatInteger(t.tradeCount) },
+    { label: "Trades (24h)", value: formatInteger(t.tradeCount), count: true },
   ];
 
   return (
@@ -39,7 +39,9 @@ export function StatsGrid({ ticker: t, halted }: { ticker: Ticker; halted: boole
             <dt className="truncate text-xs text-muted-foreground">{s.label}</dt>
             <dd
               className={cn(
-                "num mt-1 truncate text-base font-medium",
+                "mt-1 truncate text-base font-medium",
+                // Mono for prices and volumes; counts use Inter with tabular figures.
+                "count" in s ? "tabular-nums" : "num",
                 halted ? "text-muted-foreground" : "text-foreground",
               )}
             >
