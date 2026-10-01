@@ -1,12 +1,23 @@
+"use client";
+
+import { useLiveTickers } from "@/hooks/useLiveTickers";
+import type { FeedStatus } from "@/lib/live-feed";
 import { cn } from "@/lib/utils";
 
-export type ConnectionStatus = "live" | "reconnecting" | "offline";
+export type ConnectionStatus = FeedStatus;
 
 const LABELS: Record<ConnectionStatus, string> = {
+  connecting: "Connecting",
   live: "Live",
   reconnecting: "Reconnecting",
   offline: "Offline",
 };
+
+/** The badge, driven by the shared live feed (keeps it connected). */
+export function LiveConnectionBadge({ className }: { className?: string }) {
+  const status = useLiveTickers();
+  return <ConnectionBadge status={status} className={className} />;
+}
 
 /*
  * Green/red are reserved for price movement, so connection state uses the

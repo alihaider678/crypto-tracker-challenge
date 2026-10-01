@@ -8,6 +8,7 @@ import {
   filterTickers,
   groupQuotes,
   isListed,
+  isTradingHalted,
   listedTickers,
   mergeMiniTickers,
   normalizeTicker,
@@ -404,5 +405,15 @@ describe("changeDirection", () => {
     expect(changeDirection(-0.004)).toBe("flat");
     expect(changeDirection(0.005)).toBe("up");
     expect(changeDirection(Number.NaN)).toBe("flat");
+  });
+});
+
+describe("isTradingHalted", () => {
+  it("is true for halted, zero-price and zero-trade pairs", () => {
+    const btc = ALL.find((t) => t.symbol === "BTCUSDT")!;
+    expect(isTradingHalted(btc)).toBe(false);
+    expect(isTradingHalted(ALL.find((t) => t.symbol === PINNED_SYMBOL)!)).toBe(true);
+    expect(isTradingHalted({ ...btc, lastPrice: 0 })).toBe(true);
+    expect(isTradingHalted({ ...btc, tradeCount: 0 })).toBe(true);
   });
 });

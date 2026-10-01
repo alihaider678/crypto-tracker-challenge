@@ -54,6 +54,14 @@ function hasMarket(t: Ticker): boolean {
   return t.lastPrice > 0 && t.tradeCount > 0;
 }
 
+/**
+ * Not trading right now: halted (no trade for 24h), or no price / no trades
+ * at all. The detail page shows these as halted instead of live.
+ */
+export function isTradingHalted(t: Ticker): boolean {
+  return t.halted || !hasMarket(t);
+}
+
 /** Shown in listings: has a price, has trades, and traded in the last 24h. */
 export function isListed(t: Ticker): boolean {
   return hasMarket(t) && !t.halted;

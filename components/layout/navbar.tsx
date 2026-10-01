@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-import { ConnectionBadge } from "./connection-badge";
+import { LiveConnectionBadge } from "./connection-badge";
 import { Logo } from "./logo";
 import { NAV_LINKS, isActivePath } from "./nav-links";
 import { SearchTrigger } from "./search-trigger";
@@ -56,8 +56,7 @@ export function Navbar() {
 
         <div className="ml-auto flex items-center gap-2">
           <SearchTrigger />
-          {/* Wired to the WebSocket status in Phase 7. */}
-          <ConnectionBadge status="offline" className="hidden sm:inline-flex" />
+          <LiveConnectionBadge className="hidden sm:inline-flex" />
           <ThemeToggle />
           <MobileNav pathname={pathname} />
         </div>
@@ -100,7 +99,7 @@ function MobileNav({ pathname }: { pathname: string }) {
           })}
         </nav>
         <div className="mt-auto border-t border-border p-4">
-          <ConnectionBadge status="offline" />
+          <LiveConnectionBadge />
         </div>
       </SheetContent>
     </Sheet>
