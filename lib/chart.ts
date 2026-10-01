@@ -1,5 +1,6 @@
 import { TIMEFRAMES, type Timeframe } from "./binance";
-import { STALE_AFTER_MS } from "./market";
+import { formatCompact, formatPercent, formatPrice } from "./format";
+import { STALE_AFTER_MS, changeDirection, type ChangeDirection } from "./market";
 import type { Candle } from "./types";
 
 // --- Timeframe (?tf=) ---------------------------------------------------
@@ -126,4 +127,50 @@ export function toLocalChartTime(
   offsetMinutesAt: (ms: number) => number = (ms) => new Date(ms).getTimezoneOffset(),
 ): number {
   return seconds - offsetMinutesAt(seconds * 1000) * 60;
+}
+
+// --- Price scale --------------------------------------------------------
+
+/**
+ * Makes the visible price range at least `share` of the mid price (0.5% by
+ * default). For stablecoin pairs: without it, a 0.0006 move fills the whole
+ * chart and looks like a crash.
+ */
+export function minimumPriceRange(
+  minValue: number,
+  maxValue: number,
+  share = 0.005,
+): { minValue: number; maxValue: number } {
+  const mid = (minValue + maxValue) / 2;
+  const half = (mid * share) / 2;
+  if (maxValue - minValue >= half * 2) return { minValue, maxValue };
+  return { minValue: mid - half, maxValue: mid + half };
+}
+
+// --- Hover legend -------------------------------------------------------
+
+export type LegendValues = {
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  /** Candle change, open to close, signed */
+  change: string;
+  direction: ChangeDirection;
+  volume: string;
+};
+
+/** One candle's legend text, in the chart's price precision. */
+export function legendValues(c: Candle, decimals: number): LegendValues {
+  const pct = c.open > 0 ? ((c.close - c.open) / c.open) * 100 : 0;
+  const price = (v: number) => formatPrice(v, { decimals });
+  return {
+    open: price(c.open),
+    high: price(c.high),
+    low: price(c.low),
+    close: price(c.close),
+    change: formatPercent(pct),
+    direction: changeDirection(pct),
+    volume: formatCompact(c.volume),
+  };
 }

@@ -19,10 +19,11 @@ import type { Ticker } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 // Teal edge and a soft teal glow: the one accent card on the page. When the
-// card is stretched to two rows (lg), spare height is shared evenly between
-// its four groups instead of pooling in one gap.
+// card is stretched to two rows (lg), the identity/price/range block stays
+// tight at the top and the stats + CTA sit at the bottom; any spare height
+// is one gap above the stats divider, never around the price.
 const CARD =
-  "flex h-full flex-col gap-6 lg:justify-between rounded-xl border border-primary/40 bg-surface p-5 shadow-[0_0_48px_-20px_hsl(var(--primary)/0.45)] md:p-6";
+  "flex h-full flex-col gap-6 rounded-xl border border-primary/40 bg-surface p-5 shadow-[0_0_48px_-20px_hsl(var(--primary)/0.45)] md:p-6";
 
 export function FeaturedCard({ ticker }: { ticker: Ticker | null }) {
   if (!ticker) {
@@ -43,60 +44,64 @@ export function FeaturedCard({ ticker }: { ticker: Ticker | null }) {
 
   return (
     <section aria-labelledby="featured-name" className={CARD}>
-      <div className="flex items-start gap-3">
-        <CoinIcon key={t.baseAsset} baseAsset={t.baseAsset} size={48} />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 id="featured-name" className="text-lg font-semibold">
-              {t.name}
-            </h2>
-            <FeaturedBadge />
-            {halted && <HaltedBadge />}
+      <div className="space-y-5">
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <CoinIcon key={t.baseAsset} baseAsset={t.baseAsset} size={48} />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 id="featured-name" className="text-lg font-semibold">
+                  {t.name}
+                </h2>
+                <FeaturedBadge />
+                {halted && <HaltedBadge />}
+              </div>
+              <p className="text-sm text-muted-foreground">{label}</p>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">{label}</p>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <PriceCell
+              value={t.lastPrice}
+              quote={t.quoteAsset}
+              flash={!halted}
+              muted={halted}
+              className="text-2xl font-semibold tracking-[-0.02em] lg:text-3xl"
+            />
+            <ChangeBadge value={t.priceChangePercent} muted={halted} className="h-7 text-sm" />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Live trend only while trading; a halted pair's candles are weeks old. */}
+          {!halted && <FeaturedSparkline symbol={t.symbol} percent={t.priceChangePercent} />}
+          <RangeBar
+            low={t.lowPrice}
+            high={t.highPrice}
+            price={t.lastPrice}
+            quote={t.quoteAsset}
+            muted={halted}
+          />
+          {halted && (
+            <p className="flex items-start gap-2 text-sm text-muted-foreground">
+              <PauseCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+              <span>
+                Trading halted. Last trade{" "}
+                <time
+                  className="text-foreground tabular-nums"
+                  dateTime={new Date(t.updatedAt).toISOString()}
+                  suppressHydrationWarning
+                >
+                  {formatDate(t.updatedAt)}
+                </time>
+                . Figures are from that trade, not live.
+              </span>
+            </p>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <PriceCell
-          value={t.lastPrice}
-          quote={t.quoteAsset}
-          flash={!halted}
-          muted={halted}
-          className="text-2xl font-semibold tracking-[-0.02em] lg:text-3xl"
-        />
-        <ChangeBadge value={t.priceChangePercent} muted={halted} className="h-7 text-sm" />
-      </div>
-
-      <div className="space-y-4">
-        {/* Live trend only while trading; a halted pair's candles are weeks old. */}
-        {!halted && <FeaturedSparkline symbol={t.symbol} percent={t.priceChangePercent} />}
-        <RangeBar
-          low={t.lowPrice}
-          high={t.highPrice}
-          price={t.lastPrice}
-          quote={t.quoteAsset}
-          muted={halted}
-        />
-        {halted && (
-          <p className="flex items-start gap-2 text-sm text-muted-foreground">
-            <PauseCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <span>
-              Trading halted. Last trade{" "}
-              <time
-                className="text-foreground tabular-nums"
-                dateTime={new Date(t.updatedAt).toISOString()}
-                suppressHydrationWarning
-              >
-                {formatDate(t.updatedAt)}
-              </time>
-              . Figures are from that trade, not live.
-            </span>
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-6">
+      <div className="space-y-6 lg:mt-auto">
         <dl className="grid grid-cols-2 gap-x-4 gap-y-4 border-t border-border pt-5">
           <Stat label={`24h Volume (${t.quoteAsset})`} muted={halted} mono>
             {isUsdQuote(t.quoteAsset) ? quoteVolume : `${quoteVolume} ${t.quoteAsset}`}
@@ -173,19 +178,23 @@ function FeaturedSparkline({ symbol, percent }: { symbol: string; percent: numbe
 export function FeaturedCardSkeleton() {
   return (
     <div className={CARD} aria-hidden>
-      <div className="flex items-start gap-3">
-        <Skeleton className="size-12 rounded-full" />
-        <div className="space-y-2">
-          <Skeleton className="h-5 w-40" />
-          <Skeleton className="h-4 w-24" />
+      <div className="space-y-5">
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <Skeleton className="size-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </div>
+          <Skeleton className="h-10 w-56 lg:h-12" />
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-[62px]" />
+          <Skeleton className="h-5 w-3/4" />
         </div>
       </div>
-      <Skeleton className="h-10 w-56 lg:h-12" />
-      <div className="space-y-4">
-        <Skeleton className="h-[62px]" />
-        <Skeleton className="h-5 w-3/4" />
-      </div>
-      <div className="space-y-6">
+      <div className="space-y-6 lg:mt-auto">
         <div className="grid grid-cols-2 gap-4 border-t border-border pt-5">
           {Array.from({ length: 4 }, (_, i) => (
             <Skeleton key={i} className="h-9" />

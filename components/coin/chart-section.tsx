@@ -18,6 +18,7 @@ import {
   parseTimeframe,
 } from "@/lib/chart";
 import { formatDate, formatTime, priceDecimals } from "@/lib/format";
+import { isStablePair, parseSymbol } from "@/lib/symbols";
 
 /** Same box for every state, so switching states never shifts the page. */
 const FRAME = "relative h-80 overflow-hidden rounded-xl border border-border bg-surface md:h-[480px]";
@@ -51,6 +52,8 @@ export function ChartSection({
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const timeframe = parseTimeframe(searchParams.get("tf"));
+  const parsed = parseSymbol(symbol);
+  const stable = parsed ? isStablePair(parsed) : false;
 
   const setTimeframe = useCallback(
     (tf: Timeframe) => {
@@ -73,9 +76,16 @@ export function ChartSection({
         className="gap-3"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="chart-heading" className="text-base font-semibold">
-            Price chart
-          </h2>
+          <div>
+            <h2 id="chart-heading" className="text-base font-semibold">
+              Price chart
+            </h2>
+            {stable && (
+              <p className="text-xs text-muted-foreground">
+                Stablecoin pair. Tiny moves are normal.
+              </p>
+            )}
+          </div>
           <TabsList aria-label="Timeframe" className="bg-surface">
             {TIMEFRAMES.map((tf) => (
               <TabsTrigger
@@ -96,6 +106,7 @@ export function ChartSection({
             lastPrice={lastPrice}
             priceAt={priceAt}
             halted={halted}
+            stable={stable}
           />
         </TabsContent>
       </Tabs>
@@ -109,12 +120,14 @@ function ChartBody({
   lastPrice,
   priceAt,
   halted,
+  stable,
 }: {
   symbol: string;
   timeframe: Timeframe;
   lastPrice: number;
   priceAt: number;
   halted: boolean;
+  stable: boolean;
 }) {
   const { data, isPending, isError, error, refetch, isFetching } = useKlines(
     symbol,
@@ -175,11 +188,12 @@ function ChartBody({
         liveCandle={liveCandle}
         decimals={decimals}
         intraday={interval !== "1d" && interval !== "1w"}
+        stable={stable}
       />
       {note?.kind === "no-recent-trades" && (
         <div
           role="note"
-          className="pointer-events-none absolute top-3 left-3 z-10 flex max-w-[calc(100%-5rem)] items-center gap-2 rounded-lg border border-border bg-elevated/95 px-3 py-2 text-xs"
+          className="pointer-events-none absolute top-12 left-3 z-10 flex max-w-[calc(100%-5rem)] items-center gap-2 rounded-lg border border-border bg-elevated/95 px-3 py-2 text-xs"
         >
           <PauseCircle className="size-4 shrink-0 text-muted-foreground" aria-hidden />
           <span>

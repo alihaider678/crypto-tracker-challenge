@@ -5,6 +5,8 @@ import {
   applyLivePrice,
   chartNote,
   hslTokenToRgba,
+  legendValues,
+  minimumPriceRange,
   parseTimeframe,
   toChartData,
   toLocalChartTime,
@@ -177,5 +179,48 @@ describe("toLocalChartTime", () => {
     const offsetAt = (ms: number) => (ms < 1_000_000 ? -600 : -660); // Sydney AEST -> AEDT
     expect(toLocalChartTime(10, offsetAt)).toBe(10 + 36_000);
     expect(toLocalChartTime(2000, offsetAt)).toBe(2000 + 39_600);
+  });
+});
+
+describe("minimumPriceRange", () => {
+  it("widens a tiny range to 0.5% around the mid price", () => {
+    // USDC/USDT moving 0.9996..1.0002
+    const r = minimumPriceRange(0.9996, 1.0002);
+    const mid = (0.9996 + 1.0002) / 2;
+    expect(r.minValue).toBeCloseTo(mid * (1 - 0.0025), 10);
+    expect(r.maxValue).toBeCloseTo(mid * (1 + 0.0025), 10);
+  });
+
+  it("leaves a wide range alone", () => {
+    expect(minimumPriceRange(80_000, 86_000)).toEqual({ minValue: 80_000, maxValue: 86_000 });
+  });
+
+  it("accepts a custom share and handles a flat line", () => {
+    expect(minimumPriceRange(1, 1, 0.02)).toEqual({ minValue: 0.99, maxValue: 1.01 });
+  });
+});
+
+describe("legendValues", () => {
+  const c = candle(0, 100, 110, { high: 112, low: 98, volume: 1_234_567 });
+
+  it("formats OHLC with the chart's precision, plus change and volume", () => {
+    expect(legendValues(c, 2)).toEqual({
+      open: "100.00",
+      high: "112.00",
+      low: "98.00",
+      close: "110.00",
+      change: "+10.00%",
+      direction: "up",
+      volume: "1.23M",
+    });
+  });
+
+  it("reports down and flat candles", () => {
+    expect(legendValues(candle(0, 100, 95), 2)).toMatchObject({ change: "-5.00%", direction: "down" });
+    expect(legendValues(candle(0, 100, 100), 2)).toMatchObject({ change: "0.00%", direction: "flat" });
+  });
+
+  it("survives a zero open", () => {
+    expect(legendValues(candle(0, 0, 1), 2)).toMatchObject({ change: "0.00%", direction: "flat" });
   });
 });

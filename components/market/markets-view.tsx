@@ -9,6 +9,7 @@ import { TableSkeleton } from "@/components/feedback/table-skeleton";
 import { Button } from "@/components/ui/button";
 import { useLiveTickers } from "@/hooks/useLiveTickers";
 import { useMarketParams } from "@/hooks/useMarketParams";
+import { useThrottledOrder } from "@/hooks/useThrottledOrder";
 import { useTickers } from "@/hooks/useTickers";
 import {
   PRIMARY_QUOTES,
@@ -58,7 +59,13 @@ export function MarketsView() {
         : [],
     [data, params.q, params.quote, params.dir, params.sort],
   );
-  const page = paginate(view, params.page);
+  // Sorting by 24h % or price would reshuffle rows every second; hold the
+  // order for ~5s while values keep ticking.
+  const ordered = useThrottledOrder(view, {
+    enabled: params.sort.startsWith("change_") || params.sort.startsWith("price_"),
+    resetKey: [params.q, params.quote, params.dir, params.sort].join("|"),
+  });
+  const page = paginate(ordered, params.page);
 
   let body: React.ReactNode;
   if (!data && tickers.isError) {

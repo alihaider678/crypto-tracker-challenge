@@ -1,18 +1,29 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import {
   CandlestickSeries,
   ColorType,
   CrosshairMode,
   HistogramSeries,
   createChart,
+  type AutoscaleInfo,
   type IChartApi,
   type ISeriesApi,
+  type MouseEventParams,
+  type Time,
   type UTCTimestamp,
 } from "lightweight-charts";
 
-import { hslTokenToRgba, toChartData, toLocalChartTime } from "@/lib/chart";
+import {
+  hslTokenToRgba,
+  legendValues,
+  minimumPriceRange,
+  toChartData,
+  toLocalChartTime,
+} from "@/lib/chart";
+import { formatDate, formatTime } from "@/lib/format";
 import type { Candle } from "@/lib/types";
 
 /*
@@ -97,11 +108,64 @@ function applyPalette(
   });
 }
 
+/** Stablecoin pairs: keep at least a 0.5% visible range around the mid. */
+function stableAutoscale(original: () => AutoscaleInfo | null): AutoscaleInfo | null {
+  const info = original();
+  if (!info?.priceRange) return info;
+  return {
+    ...info,
+    priceRange: minimumPriceRange(info.priceRange.minValue, info.priceRange.maxValue),
+  };
+}
+
+const LEGEND_KEYS = ["open", "high", "low", "close", "change", "volume", "time"] as const;
+
+/**
+ * Writes one candle into the legend's DOM nodes. Runs from the chart's
+ * crosshair callback, so hovering never re-renders React or the chart.
+ */
+function writeLegend(el: HTMLElement, c: Candle | null, decimals: number, intraday: boolean) {
+  const set = (key: string, text: string) => {
+    const node = el.querySelector<HTMLElement>(`[data-k="${key}"]`);
+    if (node) node.textContent = text;
+  };
+  const dir = el.querySelector<HTMLElement>("[data-dir]");
+  if (!c) {
+    for (const k of LEGEND_KEYS) set(k, "—");
+    dir?.setAttribute("data-dir", "flat");
+    return;
+  }
+  const v = legendValues(c, decimals);
+  set("open", v.open);
+  set("high", v.high);
+  set("low", v.low);
+  set("close", v.close);
+  set("change", v.change);
+  set("volume", v.volume);
+  set(
+    "time",
+    intraday ? `${formatDate(c.time)}, ${formatTime(c.time).slice(0, 5)}` : formatDate(c.time),
+  );
+  dir?.setAttribute("data-dir", v.direction);
+}
+
+function LegendField({ k, label, className }: { k: string; label: string; className?: string }) {
+  return (
+    <span className={`items-baseline gap-1 ${className ?? "inline-flex"}`}>
+      <span className="text-muted-foreground">{label}</span>
+      <span data-k={k} className="num text-foreground">
+        —
+      </span>
+    </span>
+  );
+}
+
 export default function PriceChart({
   candles,
   liveCandle,
   decimals,
   intraday,
+  stable = false,
 }: {
   candles: Candle[];
   /** The still-open candle with the latest live price, if any. */
@@ -110,13 +174,30 @@ export default function PriceChart({
   decimals: number;
   /** Show times on the axis (candles shorter than a day). */
   intraday: boolean;
+  /** Stablecoin pair: keep at least a 0.5% visible price range. */
+  stable?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const legendRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volumeRef = useRef<ISeriesApi<"Histogram"> | null>(null);
   const paletteRef = useRef<Palette | null>(null);
   const candlesRef = useRef<Candle[]>(candles);
+  // Legend state lives in refs: the crosshair updates it without renders.
+  const timeMapRef = useRef(new Map<number, Candle>());
+  const hoverRef = useRef<Candle | null>(null);
+  const liveRef = useRef<Candle | null>(liveCandle);
+  const decimalsRef = useRef(decimals);
+  const intradayRef = useRef(intraday);
+
+  // Hovered candle, else the latest (live) one.
+  const renderLegend = useCallback(() => {
+    const el = legendRef.current;
+    if (!el) return;
+    const c = hoverRef.current ?? liveRef.current ?? candlesRef.current.at(-1) ?? null;
+    writeLegend(el, c, decimalsRef.current, intradayRef.current);
+  }, []);
 
   // Create once; remove everything on unmount.
   useEffect(() => {
@@ -156,6 +237,15 @@ export default function PriceChart({
     volumeRef.current = volumeSeries;
     applyPalette(chart, candleSeries, p);
 
+    const onCrosshairMove = (param: MouseEventParams<Time>) => {
+      hoverRef.current =
+        typeof param.time === "number" && param.point
+          ? (timeMapRef.current.get(param.time) ?? null)
+          : null;
+      renderLegend();
+    };
+    chart.subscribeCrosshairMove(onCrosshairMove);
+
     // Theme switch (next-themes toggles the class on <html>): re-read the
     // tokens and recolor in place. The chart, its zoom and the selected
     // timeframe are untouched.
@@ -173,13 +263,14 @@ export default function PriceChart({
     });
 
     return () => {
+      chart.unsubscribeCrosshairMove(onCrosshairMove);
       observer.disconnect();
       chartRef.current = null;
       candleRef.current = null;
       volumeRef.current = null;
       chart.remove();
     };
-  }, []);
+  }, [renderLegend]);
 
   // Full data: on load and timeframe change.
   useEffect(() => {
@@ -192,10 +283,15 @@ export default function PriceChart({
     );
     volumeRef.current.setData(volumeData(candles, p));
     chartRef.current?.timeScale().fitContent();
-  }, [candles]);
+    timeMapRef.current = new Map(candles.map((c) => [asTime(c.time) as number, c]));
+    hoverRef.current = null;
+    renderLegend();
+  }, [candles, renderLegend]);
 
-  // Live tick: redraw just the open candle.
+  // Live tick: redraw just the open candle, and the legend unless hovering.
   useEffect(() => {
+    liveRef.current = liveCandle;
+    renderLegend();
     if (!liveCandle || !candleRef.current) return;
     candleRef.current.update({
       time: asTime(liveCandle.time),
@@ -204,14 +300,52 @@ export default function PriceChart({
       low: liveCandle.low,
       close: liveCandle.close,
     });
-  }, [liveCandle]);
+  }, [liveCandle, renderLegend]);
 
   useEffect(() => {
+    decimalsRef.current = decimals;
+    intradayRef.current = intraday;
     candleRef.current?.applyOptions({
       priceFormat: { type: "price", precision: decimals, minMove: 10 ** -decimals },
     });
     chartRef.current?.applyOptions({ timeScale: { timeVisible: intraday } });
-  }, [decimals, intraday]);
+    renderLegend();
+  }, [decimals, intraday, renderLegend]);
 
-  return <div ref={containerRef} className="size-full" />;
+  useEffect(() => {
+    candleRef.current?.applyOptions({
+      autoscaleInfoProvider: stable ? stableAutoscale : undefined,
+    });
+  }, [stable]);
+
+  return (
+    <div className="flex size-full flex-col">
+      {/* Fixed-height legend row: hovered candle, or the latest one. */}
+      <div
+        ref={legendRef}
+        aria-hidden
+        className="flex h-9 shrink-0 items-center gap-x-3 overflow-hidden border-b border-border px-3 text-xs whitespace-nowrap"
+      >
+        <LegendField k="open" label="O" className="hidden sm:inline-flex" />
+        <LegendField k="high" label="H" className="hidden sm:inline-flex" />
+        <LegendField k="low" label="L" className="hidden sm:inline-flex" />
+        <LegendField k="close" label="C" />
+        {/* Sign + arrow + color, never color alone. */}
+        <span
+          data-dir="flat"
+          className="group/dir num inline-flex items-center gap-0.5 data-[dir=down]:text-negative data-[dir=flat]:text-muted-foreground data-[dir=up]:text-positive"
+        >
+          <ArrowUpRight className="hidden size-3.5 group-data-[dir=up]/dir:inline" aria-hidden />
+          <ArrowDownRight className="hidden size-3.5 group-data-[dir=down]/dir:inline" aria-hidden />
+          <Minus className="hidden size-3.5 group-data-[dir=flat]/dir:inline" aria-hidden />
+          <span data-k="change">—</span>
+        </span>
+        <LegendField k="volume" label="Vol" />
+        <span data-k="time" className="ml-auto hidden text-muted-foreground tabular-nums md:inline">
+          —
+        </span>
+      </div>
+      <div ref={containerRef} className="min-h-0 flex-1" />
+    </div>
+  );
 }

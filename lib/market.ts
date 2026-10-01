@@ -342,6 +342,26 @@ export function rangePosition(low: number, high: number, price: number): number 
   return Math.min(1, Math.max(0, (price - low) / (high - low)));
 }
 
+/**
+ * Lays `list` out in a held symbol order (for throttled re-sorting): rows
+ * keep their place but carry the latest ticker values. Pairs no longer in
+ * the list drop out; new ones are appended in list order.
+ */
+export function applyFrozenOrder(list: Ticker[], order: readonly string[] | null): Ticker[] {
+  if (!order) return list;
+  const bySymbol = new Map(list.map((t) => [t.symbol, t]));
+  const out: Ticker[] = [];
+  for (const s of order) {
+    const t = bySymbol.get(s);
+    if (t) {
+      out.push(t);
+      bySymbol.delete(s);
+    }
+  }
+  for (const t of list) if (bySymbol.has(t.symbol)) out.push(t);
+  return out;
+}
+
 // --- Live updates -------------------------------------------------------
 
 /**

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   LEGACY_SORT_KEYS,
   PINNED_SYMBOL,
+  applyFrozenOrder,
   applyMiniTicker,
   changeDirection,
   filterTickers,
@@ -497,5 +498,26 @@ describe("rangePosition", () => {
     const pos = rangePosition(v.lowPrice, v.highPrice, v.lastPrice)!;
     expect(pos).toBeGreaterThan(0);
     expect(pos).toBeLessThan(0.1); // 0.00074 in 0.00071..0.001414
+  });
+});
+
+describe("applyFrozenOrder", () => {
+  const [a, b, c, d] = LISTED;
+
+  it("keeps the held order with fresh ticker objects", () => {
+    const fresh = [{ ...c }, { ...a }, { ...b }];
+    const out = applyFrozenOrder(fresh, [a.symbol, b.symbol, c.symbol]);
+    expect(symbols(out)).toEqual([a.symbol, b.symbol, c.symbol]);
+    expect(out[0]).toBe(fresh[1]); // live values, not the stale objects
+  });
+
+  it("drops pairs that left the list and appends new ones in list order", () => {
+    const out = applyFrozenOrder([d, c, a], [a.symbol, b.symbol, c.symbol]);
+    expect(symbols(out)).toEqual([a.symbol, c.symbol, d.symbol]);
+  });
+
+  it("returns the list unchanged without an order", () => {
+    const list = [a, b];
+    expect(applyFrozenOrder(list, null)).toBe(list);
   });
 });

@@ -61,7 +61,8 @@ html.light {
   --background: 220 20% 97%;
   --surface: 0 0% 100%;
   --elevated: 220 18% 95%;
-  --border: 220 14% 87%;
+  /* 82% (was 87%) so white cards separate clearly from the page */
+  --border: 220 14% 82%;
 
   /* text */
   --foreground: 222 28% 11%;
