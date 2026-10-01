@@ -26,7 +26,9 @@ import { SummaryStrip, SummaryStripSkeleton } from "./summary-strip";
  * the gainers/losers lists stacked on the right; highest volume runs as a
  * full-width strip underneath.
  */
-const BENTO = "grid gap-4 md:grid-cols-2 lg:grid-cols-12";
+// grid-cols-1 = minmax(0, 1fr): without it the mobile column grows to fit
+// its widest content (a long coin name) and the page scrolls sideways.
+const BENTO = "grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-12";
 const AREA = {
   featured: "md:col-span-2 lg:col-span-7 lg:row-span-2",
   gainers: "lg:col-span-5",

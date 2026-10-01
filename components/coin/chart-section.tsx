@@ -15,10 +15,11 @@ import {
   DEFAULT_TIMEFRAME,
   applyLivePrice,
   chartNote,
+  chartSummary,
   parseTimeframe,
 } from "@/lib/chart";
 import { formatDate, formatTime, priceDecimals } from "@/lib/format";
-import { isStablePair, parseSymbol } from "@/lib/symbols";
+import { isStablePair, pairLabel, parseSymbol } from "@/lib/symbols";
 
 /** Same box for every state, so switching states never shifts the page. */
 const FRAME = "relative h-80 overflow-hidden rounded-xl border border-border bg-surface md:h-[480px]";
@@ -145,6 +146,23 @@ function ChartBody({
     [data, halted, priceAt],
   );
   const decimals = priceDecimals(data?.at(-1)?.close ?? lastPrice);
+  const intraday = interval !== "1d" && interval !== "1w";
+  // Text alternative for the canvas: price, range and the halted note.
+  const summary = useMemo(() => {
+    const parsed = parseSymbol(symbol);
+    if (!data || !parsed) return "";
+    return chartSummary({
+      pair: pairLabel(parsed),
+      timeframeLabel: TIMEFRAME_LABELS[timeframe],
+      candles: data,
+      lastPrice,
+      quote: parsed.quoteAsset,
+      decimals,
+      note,
+      formatWhen: (ms) =>
+        intraday ? `${formatDate(ms)}, ${formatTime(ms).slice(0, 5)}` : formatDate(ms),
+    });
+  }, [data, symbol, timeframe, lastPrice, decimals, note, intraday]);
 
   if (isPending) {
     return (
@@ -183,11 +201,14 @@ function ChartBody({
 
   return (
     <div className={FRAME}>
+      {/* Text alternative for the canvas. Not role="img" on the frame: the
+          chart holds a focusable attribution link. */}
+      <p className="sr-only">{summary}</p>
       <PriceChart
         candles={data}
         liveCandle={liveCandle}
         decimals={decimals}
-        intraday={interval !== "1d" && interval !== "1w"}
+        intraday={intraday}
         stable={stable}
       />
       {note?.kind === "no-recent-trades" && (

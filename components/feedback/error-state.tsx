@@ -8,14 +8,18 @@ export function ErrorState({
   message,
   onRetry,
   retrying = false,
+  headingLevel = 2,
   className,
 }: {
   title?: string;
   message?: string;
   onRetry?: () => void;
   retrying?: boolean;
+  /** 1 when this is the page's main content (error page). */
+  headingLevel?: 1 | 2;
   className?: string;
 }) {
+  const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
     <div
       role="alert"
@@ -28,7 +32,7 @@ export function ErrorState({
         <AlertTriangle className="size-5" aria-hidden />
       </span>
       <div className="space-y-1">
-        <h2 className="text-base font-semibold">{title}</h2>
+        <Heading className="text-base font-semibold">{title}</Heading>
         {message && (
           <p className="max-w-md text-sm text-muted-foreground">{message}</p>
         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { ChevronDown, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,8 @@ const PILL_CLASS =
 
 type ChangeFn = (patch: Partial<MarketParams>, options?: { replace?: boolean }) => void;
 
-export function MarketToolbar({
+/** Memoized: the page re-renders on every live tick; the toolbar needn't. */
+export const MarketToolbar = memo(function MarketToolbar({
   params,
   quotes,
   onChange,
@@ -62,7 +63,7 @@ export function MarketToolbar({
       />
     </div>
   );
-}
+});
 
 // --- Search ---------------------------------------------------------------
 

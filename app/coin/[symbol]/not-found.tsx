@@ -12,6 +12,7 @@ export default function CoinNotFound() {
     <section className="container-page py-16 md:py-24">
       <EmptyState
         icon={SearchX}
+        headingLevel={1}
         title="Pair not found"
         description="Binance doesn't list this trading pair. Check the symbol, or find it in Markets."
         action={

@@ -125,6 +125,7 @@ export function WatchlistView() {
 
       {rows.length > 0 && (
         <MarketTable
+          label="Watchlist"
           rows={rows}
           firstRank={1}
           sort={params.sort}

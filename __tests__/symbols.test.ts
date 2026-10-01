@@ -160,3 +160,10 @@ describe("stablecoins", () => {
     expect(isStablePair(parseSymbol(symbol)!)).toBe(expected);
   });
 });
+
+describe("coinIconUrl sizes", () => {
+  it("defaults to the legacy 128px icon and offers a 32px one", () => {
+    expect(coinIconUrl("BTC")).toMatch(/\/128\/color\/btc\.png$/);
+    expect(coinIconUrl("SHIB", 32)).toMatch(/\/32\/color\/shiba-inu\.png$/);
+  });
+});

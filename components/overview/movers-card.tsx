@@ -102,7 +102,7 @@ export function VolumeCard({ icon, tickers }: { icon: LucideIcon; tickers: Ticke
   return (
     <MoversShell title="Highest volume" icon={icon} caption="USDT pairs · 24h quote volume">
       {/* 1px gaps over a border-colored background draw the dividers. */}
-      <ol className="grid gap-px overflow-hidden rounded-b-xl bg-border sm:grid-cols-2 lg:grid-cols-5">
+      <ol className="grid grid-cols-1 gap-px overflow-hidden rounded-b-xl bg-border sm:grid-cols-2 lg:grid-cols-5">
         {tickers.map((t, i) => (
           <VolumeTile key={t.symbol} ticker={t} rank={i + 1} />
         ))}
@@ -121,7 +121,7 @@ const VolumeTile = memo(function VolumeTile({ ticker: t, rank }: { ticker: Ticke
         aria-label={`${t.name}, ${pairLabel(t)}`}
         className="flex h-full items-center justify-between gap-3 px-4 py-3 transition-colors outline-none hover:bg-elevated/60 active:bg-elevated focus-visible:bg-elevated focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:flex-col sm:items-stretch sm:justify-start sm:py-4"
       >
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
           <span className="text-xs text-muted-foreground tabular-nums">{rank}</span>
           <div className="min-w-0 flex-1">
             <CoinIdentity baseAsset={t.baseAsset} quoteAsset={t.quoteAsset} name={t.name} />
@@ -177,7 +177,7 @@ export function VolumeCardSkeleton() {
         <Skeleton className="h-4 w-28" />
         <Skeleton className="h-3 w-32" />
       </div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
         {Array.from({ length: ROW_COUNT }, (_, i) => (
           <div key={i} className="flex items-center justify-between gap-3 px-4 py-3 sm:block sm:space-y-3 sm:py-4">
             <div className="flex items-center gap-2">

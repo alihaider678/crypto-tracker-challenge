@@ -11,7 +11,7 @@ export default function OverviewPage() {
       {/* Compact hero: copy left, live prices right (below on mobile). */}
       <section
         aria-labelledby="hero-heading"
-        className="grid gap-8 lg:grid-cols-12 lg:items-center lg:gap-12"
+        className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center lg:gap-12"
       >
         <div className="space-y-5 lg:col-span-7">
           <h1

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { memo, useRef } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInViewOnce } from "@/hooks/useInView";
@@ -16,7 +16,7 @@ import { Sparkline } from "./sparkline";
  * so nothing shifts when the line arrives. Halted pairs skip the request:
  * their last candles are weeks old.
  */
-export function SparklineCell({
+export const SparklineCell = memo(function SparklineCell({
   symbol,
   halted,
   trend,
@@ -52,4 +52,4 @@ export function SparklineCell({
       {content}
     </div>
   );
-}
+});

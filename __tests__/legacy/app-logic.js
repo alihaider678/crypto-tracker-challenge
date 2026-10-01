@@ -1,10 +1,10 @@
-// Verbatim copies of the data logic in legacy/src/App.jsx, used as the
-// reference for parity tests. App.jsx itself can't be imported (JSX, module
-// side effects), so these are lifted out unchanged. Do not "fix" them.
+// Verbatim copies of the data logic in the original Vite app's src/App.jsx
+// (removed in Phase 8; see `git show e1d7332:src/App.jsx`), used as the
+// reference for parity tests. Do not "fix" them.
 
 export const REQUIRED_PAIR = 'VANRYUSDT';
 
-// legacy/src/App.jsx:9-49
+// App.jsx:9-49
 export const getCoinImageUrl = (baseAsset) => {
     // This map helps resolve symbols from the API to the correct image file names.
     const symbolMap = {
@@ -47,7 +47,7 @@ export const getCoinImageUrl = (baseAsset) => {
     return `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${mappedSymbol}.png`;
 };
 
-// legacy/src/App.jsx:330-345 (fetchData body, minus fetch and setState)
+// App.jsx:330-345 (fetchData body, minus fetch and setState)
 export const processTickers = (data) => {
     const processedData = data
         .filter(coin => coin.symbol.endsWith('USDT'))
@@ -67,7 +67,7 @@ export const processTickers = (data) => {
     }
 };
 
-// legacy/src/App.jsx:359-381 (filteredAndSortedCoins memo body)
+// App.jsx:359-381 (filteredAndSortedCoins memo body)
 export const filterAndSort = (allCoins, searchTerm, sortBy) => {
     return allCoins
         .filter(coin =>

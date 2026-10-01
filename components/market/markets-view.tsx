@@ -43,9 +43,15 @@ export function MarketsView() {
   useWatchlistHydration();
 
   const data = tickers.data;
+  // Live ticks replace `data` every second but never change which quotes
+  // exist; key the pills on that so the memoized toolbar can skip renders.
+  const quoteKey = useMemo(() => data?.map((t) => t.quoteAsset).join(",") ?? "", [data]);
   const quotes = useMemo(
-    () => (data ? groupQuotes(data) : PLACEHOLDER_QUOTES),
-    [data],
+    () =>
+      quoteKey
+        ? groupQuotes(quoteKey.split(",").map((quoteAsset) => ({ quoteAsset })))
+        : PLACEHOLDER_QUOTES,
+    [quoteKey],
   );
   const view = useMemo(
     () =>

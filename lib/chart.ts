@@ -174,3 +174,46 @@ export function legendValues(c: Candle, decimals: number): LegendValues {
     volume: formatCompact(c.volume),
   };
 }
+
+// --- Text alternative ---------------------------------------------------
+
+/**
+ * Screen-reader description of the chart: what it shows, the last price,
+ * the low-high range over the period, and the no-recent-trades note.
+ */
+export function chartSummary({
+  pair,
+  timeframeLabel,
+  candles,
+  lastPrice,
+  quote,
+  decimals,
+  note,
+  formatWhen,
+}: {
+  pair: string;
+  timeframeLabel: string;
+  candles: Candle[];
+  lastPrice: number;
+  quote: string;
+  decimals: number;
+  note: ChartNote | null;
+  /** Formats a candle time for the sentence (local date, maybe time). */
+  formatWhen: (ms: number) => string;
+}): string {
+  const price = (v: number) => formatPrice(v, { quote, decimals });
+  if (candles.length === 0) {
+    return `${pair} candlestick chart, ${timeframeLabel}: no candles for this period.`;
+  }
+  const low = Math.min(...candles.map((c) => c.low));
+  const high = Math.max(...candles.map((c) => c.high));
+  const parts = [
+    `${pair} candlestick chart, ${timeframeLabel}, ${candles.length} candles.`,
+    `Last price ${price(lastPrice)}.`,
+    `Range ${price(low)} to ${price(high)}.`,
+  ];
+  if (note?.kind === "no-recent-trades") {
+    parts.push(`No recent trades; last candle ${formatWhen(note.lastCandleAt)}.`);
+  }
+  return parts.join(" ");
+}

@@ -4,6 +4,7 @@ import {
   DEFAULT_TIMEFRAME,
   applyLivePrice,
   chartNote,
+  chartSummary,
   hslTokenToRgba,
   legendValues,
   minimumPriceRange,
@@ -222,5 +223,42 @@ describe("legendValues", () => {
 
   it("survives a zero open", () => {
     expect(legendValues(candle(0, 0, 1), 2)).toMatchObject({ change: "0.00%", direction: "flat" });
+  });
+});
+
+describe("chartSummary", () => {
+  const base = {
+    pair: "BTC/USDT",
+    timeframeLabel: "1 day",
+    lastPrice: 110,
+    quote: "USDT",
+    decimals: 2,
+    formatWhen: (ms: number) => `T${ms}`,
+  };
+
+  it("states last price and the period's range", () => {
+    expect(
+      chartSummary({
+        ...base,
+        candles: [candle(0, 100, 105, { low: 95, high: 106 }), candle(HOUR, 105, 110, { low: 104, high: 112 })],
+        note: null,
+      }),
+    ).toBe("BTC/USDT candlestick chart, 1 day, 2 candles. Last price $110.00. Range $95.00 to $112.00.");
+  });
+
+  it("includes the no-recent-trades note", () => {
+    expect(
+      chartSummary({
+        ...base,
+        candles: [candle(0, 1, 2)],
+        note: { kind: "no-recent-trades", lastCandleAt: 0 },
+      }),
+    ).toContain("No recent trades; last candle T0.");
+  });
+
+  it("handles an empty period", () => {
+    expect(chartSummary({ ...base, candles: [], note: { kind: "empty" } })).toBe(
+      "BTC/USDT candlestick chart, 1 day: no candles for this period.",
+    );
   });
 });

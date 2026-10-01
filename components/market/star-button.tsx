@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,13 @@ import { useWatchlist } from "@/store/watchlist";
  * Watchlist toggle. Reads the store directly (no hydration hook per row);
  * the page calls useWatchlistHydration once.
  */
-export function StarButton({ symbol, label }: { symbol: string; label: string }) {
+export const StarButton = memo(function StarButton({
+  symbol,
+  label,
+}: {
+  symbol: string;
+  label: string;
+}) {
   const watched = useWatchlist((s) => s.symbols.includes(symbol));
   const toggle = useWatchlist((s) => s.toggle);
 
@@ -29,4 +36,4 @@ export function StarButton({ symbol, label }: { symbol: string; label: string })
       <Star className={cn(watched && "fill-current")} aria-hidden />
     </Button>
   );
-}
+});

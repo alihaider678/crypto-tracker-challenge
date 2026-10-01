@@ -30,7 +30,7 @@ export function CtaBand({
         </p>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span>Data feed</span>
-          <ConnectionBadge status={status} />
+          <ConnectionBadge status={status} announce={false} />
         </div>
       </div>
       <Button asChild size="lg" className="self-start md:self-center">

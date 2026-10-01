@@ -38,6 +38,7 @@ export function MarketTable({
   sort,
   onSort,
   pinnedSymbol = PINNED_SYMBOL,
+  label = "Markets",
 }: {
   rows: Ticker[];
   /** Rank of the first row (page offset + 1). */
@@ -45,11 +46,13 @@ export function MarketTable({
   sort: SortKey;
   onSort: (sort: SortKey) => void;
   pinnedSymbol?: string;
+  /** Accessible name of the table. */
+  label?: string;
 }) {
   return (
     <div className="rounded-xl border border-border">
       <Table
-        aria-label="Markets"
+        aria-label={label}
         // overflow-x-auto would make the wrapper a scroll container and break
         // the sticky header; columns collapse on small screens instead.
         containerClassName="overflow-visible"
@@ -148,6 +151,56 @@ function SortableTh({
 // --- Row --------------------------------------------------------------------
 
 /**
+ * The coin cell's link. Memoized on primitives: a price tick re-renders the
+ * row, not this. (lastTradeAt is 0 for live pairs, so their ticks don't
+ * change it.)
+ */
+const CoinLink = memo(function CoinLink({
+  href,
+  label,
+  name,
+  baseAsset,
+  quoteAsset,
+  featured,
+  halted,
+  lastTradeAt,
+}: {
+  href: string;
+  label: string;
+  name: string;
+  baseAsset: string;
+  quoteAsset: string;
+  featured: boolean;
+  halted: boolean;
+  lastTradeAt: number;
+}) {
+  return (
+    <Link
+      href={href}
+      prefetch={false}
+      className="block rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      aria-label={`${name}, ${label}${halted ? ", trading halted" : ""}`}
+    >
+      <CoinIdentity
+        baseAsset={baseAsset}
+        quoteAsset={quoteAsset}
+        name={name}
+        meta={
+          halted ? (
+            <span>
+              {" · "}Last trade: {formatDate(lastTradeAt)}
+            </span>
+          ) : null
+        }
+      >
+        {featured && <FeaturedBadge />}
+        {halted && <HaltedBadge />}
+      </CoinIdentity>
+    </Link>
+  );
+});
+
+/**
  * One pair. Memoized on the ticker object: the live merge keeps unchanged
  * tickers' identity, so a tick only re-renders the rows that changed.
  */
@@ -193,28 +246,16 @@ const MarketRow = memo(function MarketRow({
           featured && "shadow-[inset_2px_0_0_hsl(var(--primary))] sm:shadow-none",
         )}
       >
-        <Link
+        <CoinLink
           href={href}
-          prefetch={false}
-          className="block rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          aria-label={`${t.name}, ${label}${t.halted ? ", trading halted" : ""}`}
-        >
-          <CoinIdentity
-            baseAsset={t.baseAsset}
-            quoteAsset={t.quoteAsset}
-            name={t.name}
-            meta={
-              t.halted ? (
-                <span>
-                  {" · "}Last trade: {formatDate(t.updatedAt)}
-                </span>
-              ) : null
-            }
-          >
-            {featured && <FeaturedBadge />}
-            {t.halted && <HaltedBadge />}
-          </CoinIdentity>
-        </Link>
+          label={label}
+          name={t.name}
+          baseAsset={t.baseAsset}
+          quoteAsset={t.quoteAsset}
+          featured={featured}
+          halted={t.halted}
+          lastTradeAt={t.halted ? t.updatedAt : 0}
+        />
       </TableCell>
       <TableCell className={cn(CELL_CLASS, COLUMN_CLASS.price)}>
         <PriceCell

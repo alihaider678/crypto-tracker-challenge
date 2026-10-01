@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart3, LayoutGrid, Star, type LucideIcon } from "lucide-react";
@@ -26,6 +26,10 @@ import { pairLabel } from "@/lib/symbols";
 // the free space with our right-aligned price. Nothing here is "checked".
 const ITEM = "[&>svg:last-child]:hidden";
 
+// cmdk compares item values as given; keep them lower-case and unique.
+const pageValue = (href: string) => `page ${href}`;
+const coinValue = (symbol: string) => `coin ${symbol.toLowerCase()}`;
+
 const PAGE_ICONS: Record<string, LucideIcon> = {
   "/": LayoutGrid,
   "/markets": BarChart3,
@@ -34,6 +38,7 @@ const PAGE_ICONS: Record<string, LucideIcon> = {
 
 /**
  * Ctrl/Cmd+K palette: jump to a coin (ticker, name or pair) or a page.
+ * Loaded lazily by the Navbar, which also owns the shortcut and focus return.
  * Our own ranking replaces cmdk's filter (shouldFilter={false}): the index
  * is built once per snapshot, results are capped, and typing is deferred so
  * fast typing never blocks the input.
@@ -59,17 +64,25 @@ export function CommandPalette({
   const pages = searchPages(deferredQuery);
   const hasQuery = deferredQuery.trim() !== "";
 
-  // Global shortcut, on every page.
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        onOpenChange(!open);
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onOpenChange]);
+  // Controlled selection. With our own filtering, cmdk doesn't always move
+  // the highlight when the list is replaced (e.g. typing removes the Pages
+  // group), which left Enter with nothing selected. Whenever the first
+  // result changes, select it; arrow keys still move it as usual.
+  const firstValue = hasQuery
+    ? coins[0]
+      ? coinValue(coins[0].symbol)
+      : pages[0]
+        ? pageValue(pages[0].href)
+        : ""
+    : pages[0]
+      ? pageValue(pages[0].href)
+      : "";
+  const [selected, setSelected] = useState(firstValue);
+  const [selectedFor, setSelectedFor] = useState(firstValue);
+  if (firstValue !== selectedFor) {
+    setSelectedFor(firstValue);
+    setSelected(firstValue);
+  }
 
   const setOpen = (next: boolean) => {
     if (!next) setQuery("");
@@ -88,7 +101,7 @@ export function CommandPalette({
         return (
           <CommandItem
             key={p.href}
-            value={`page ${p.href}`}
+            value={pageValue(p.href)}
             onSelect={() => go(p.href)}
             className={ITEM}
           >
@@ -117,7 +130,7 @@ export function CommandPalette({
           return (
             <CommandItem
               key={t.symbol}
-              value={`coin ${t.symbol}`}
+              value={coinValue(t.symbol)}
               onSelect={() => go(`/coin/${t.symbol}`)}
               className={`gap-3 ${ITEM}`}
             >
@@ -149,7 +162,7 @@ export function CommandPalette({
       description="Jump to a coin or a page"
       className="sm:max-w-xl"
     >
-      <Command shouldFilter={false} loop>
+      <Command shouldFilter={false} loop value={selected} onValueChange={setSelected}>
         <CommandInput
           value={query}
           onValueChange={setQuery}

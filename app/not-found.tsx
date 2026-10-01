@@ -13,6 +13,7 @@ export default function NotFound() {
     <section className="container-page py-16 md:py-24">
       <EmptyState
         icon={Compass}
+        headingLevel={1}
         title="Page not found"
         description="That page doesn't exist or has moved."
         action={

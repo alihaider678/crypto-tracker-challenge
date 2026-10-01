@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { memo, useState } from "react";
 
 import { coinIconUrl } from "@/lib/symbols";
 import { cn } from "@/lib/utils";
@@ -40,15 +39,20 @@ export function CoinIcon({
     );
   }
 
+  // Small icons: the 32px file on 1x screens, 128px on high-DPI ones (the
+  // set has no 64px). A plain <img>: these third-party PNGs often 404, so
+  // next/image's optimizer would add nothing.
+  const small = size <= 32;
   return (
-    <Image
-      src={coinIconUrl(baseAsset)}
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={coinIconUrl(baseAsset, small ? 32 : 128)}
+      srcSet={small ? `${coinIconUrl(baseAsset, 32)} 1x, ${coinIconUrl(baseAsset, 128)} 2x` : undefined}
       alt=""
       width={size}
       height={size}
-      // Third-party PNGs that often 404; skip the optimizer.
-      unoptimized
       loading="lazy"
+      decoding="async"
       onError={() => {
         failedIcons.add(baseAsset);
         setFailed(true);
@@ -58,8 +62,12 @@ export function CoinIcon({
   );
 }
 
-/** Icon + name + pair. The name line takes extra content such as badges. */
-export function CoinIdentity({
+/**
+ * Icon + name + pair. The name line takes extra content such as badges.
+ * Memoized: rows re-render on every tick, this part almost never changes
+ * (pass primitive props; children/meta elements defeat the memo).
+ */
+export const CoinIdentity = memo(function CoinIdentity({
   baseAsset,
   quoteAsset,
   name,
@@ -94,4 +102,4 @@ export function CoinIdentity({
       </div>
     </div>
   );
-}
+});

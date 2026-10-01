@@ -2,7 +2,7 @@
 
 ## Conventions
 
-Full design spec: `CRYPTO_DASHBOARD_REDESIGN.md`. The old Vite app lives in `legacy/` until parity is confirmed; don't edit it.
+Full design spec: `CRYPTO_DASHBOARD_REDESIGN.md`. The original Vite app was removed after parity was confirmed (Phase 8); it's in git history (`git show e1d7332:src/App.jsx`). `__tests__/legacy/app-logic.js` keeps its data logic verbatim for the parity tests.
 
 - **Green/red are for price movement only.** Never use them for decoration, status or brand. Always pair them with an arrow icon and a +/- sign.
 - **Color tokens** (`app/globals.css`): `bg-background` (page) < `bg-surface` (cards) < `bg-elevated` (popovers, hover rows); `border-border`; `text-foreground` / `text-muted-foreground`; `text-positive` / `text-negative` and `bg-positive-bg` / `bg-negative-bg` for movement. The spec's teal "accent" is `primary` (`bg-primary`, `ring`). shadcn's `accent` is the neutral `elevated` color, not teal.

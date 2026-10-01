@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
@@ -16,16 +17,50 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-import { CommandPalette } from "./command-palette";
 import { LiveConnectionBadge } from "./connection-badge";
 import { Logo } from "./logo";
 import { NAV_LINKS, isActivePath } from "./nav-links";
 import { SearchTrigger } from "./search-trigger";
 import { ThemeToggle } from "./theme-toggle";
 
+// cmdk and the dialog load on first use, not with every page.
+const loadPalette = () => import("./command-palette");
+const CommandPalette = dynamic(() => loadPalette().then((m) => m.CommandPalette), {
+  ssr: false,
+});
+
 export function Navbar() {
   const pathname = usePathname();
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [paletteMounted, setPaletteMounted] = useState(false);
+  // Element to refocus on close (Radix can't know it when opened by shortcut).
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  const setPalette = useCallback((open: boolean) => {
+    if (open) {
+      returnFocusRef.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      setPaletteMounted(true);
+    } else {
+      const el = returnFocusRef.current;
+      returnFocusRef.current = null;
+      // After Radix finishes its own focus handling.
+      if (el?.isConnected) setTimeout(() => el.focus(), 0);
+    }
+    setPaletteOpen(open);
+  }, []);
+
+  // Ctrl/Cmd+K everywhere, including /markets.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setPalette(!paletteOpen);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [paletteOpen, setPalette]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
@@ -58,13 +93,13 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <SearchTrigger onOpen={() => setPaletteOpen(true)} />
+          <SearchTrigger onOpen={() => setPalette(true)} onPrefetch={() => void loadPalette()} />
           <LiveConnectionBadge className="hidden sm:inline-flex" />
           <ThemeToggle />
           <MobileNav pathname={pathname} />
         </div>
       </div>
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      {paletteMounted && <CommandPalette open={paletteOpen} onOpenChange={setPalette} />}
     </header>
   );
 }

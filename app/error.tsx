@@ -22,6 +22,7 @@ export default function Error({
     <section className="container-page space-y-4 py-16 md:py-24">
       <ErrorState
         title="Something went wrong"
+        headingLevel={1}
         message="This page hit an unexpected error. Try again, or head back to the overview."
         onRetry={reset}
       />

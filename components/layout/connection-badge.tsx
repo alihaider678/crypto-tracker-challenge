@@ -25,15 +25,21 @@ export function LiveConnectionBadge({ className }: { className?: string }) {
  */
 export function ConnectionBadge({
   status,
+  announce = true,
   className,
 }: {
   status: ConnectionStatus;
+  /**
+   * Announce changes to screen readers (polite). Keep this on for the
+   * navbar badge only, so a reconnect isn't read out twice.
+   */
+  announce?: boolean;
   className?: string;
 }) {
   return (
     <span
-      role="status"
-      aria-live="polite"
+      role={announce ? "status" : undefined}
+      aria-live={announce ? "polite" : undefined}
       className={cn(
         "inline-flex h-7 items-center gap-2 rounded-full border px-2.5 text-xs font-medium",
         status === "live"

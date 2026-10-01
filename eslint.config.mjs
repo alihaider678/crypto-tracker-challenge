@@ -12,8 +12,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Old Vite app, kept until feature parity is confirmed.
-    "legacy/**",
   ]),
 ]);
 

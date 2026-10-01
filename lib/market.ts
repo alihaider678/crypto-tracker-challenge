@@ -239,7 +239,7 @@ export type QuoteOption = { quote: string; count: number };
  * `minPairs` listed pairs to get a pill.
  */
 export function groupQuotes(
-  list: Ticker[],
+  list: readonly { quoteAsset: string }[],
   { minPairs = 5 }: { minPairs?: number } = {},
 ): { primary: QuoteOption[]; more: QuoteOption[] } {
   const counts = new Map<string, number>();

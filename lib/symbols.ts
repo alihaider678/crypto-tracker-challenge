@@ -113,7 +113,7 @@ export function isUsdQuote(quoteAsset: string): boolean {
 
 /**
  * Base asset -> file name in spothq/cryptocurrency-icons. Copied as-is from
- * the legacy getCoinImageUrl (legacy/src/App.jsx). Unmapped assets fall back
+ * the legacy getCoinImageUrl (see __tests__/legacy/app-logic.js). Unmapped assets fall back
  * to the lowercase ticker.
  */
 export const ICON_SLUG_MAP: Readonly<Record<string, string>> = {
@@ -153,16 +153,16 @@ export const ICON_SLUG_MAP: Readonly<Record<string, string>> = {
   AR: "ar",
 };
 
-const ICON_BASE_URL =
-  "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color";
+const ICON_BASE_URL = "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master";
 
 /**
- * Icon URL for a base asset. The icon set is old, so many newer coins 404;
- * CoinIdentity shows a fallback avatar for those.
+ * Icon URL for a base asset. The set has 32px and 128px PNGs (128 is the
+ * legacy default). It's old, so many newer coins 404; CoinIcon shows a
+ * fallback avatar for those.
  */
-export function coinIconUrl(baseAsset: string): string {
+export function coinIconUrl(baseAsset: string, size: 32 | 128 = 128): string {
   const slug = ICON_SLUG_MAP[baseAsset] || baseAsset.toLowerCase();
-  return `${ICON_BASE_URL}/${slug}.png`;
+  return `${ICON_BASE_URL}/${size}/color/${slug}.png`;
 }
 
 /** Base asset -> display name, for roughly the top 100 coins on Binance. */
