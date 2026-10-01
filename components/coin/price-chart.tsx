@@ -59,6 +59,44 @@ function readPalette(): Palette {
 
 const asTime = (ms: number) => toLocalChartTime(Math.floor(ms / 1000)) as UTCTimestamp;
 
+function samePalette(a: Palette, b: Palette) {
+  return (Object.keys(a) as (keyof Palette)[]).every((k) => a[k] === b[k]);
+}
+
+function volumeData(candles: Candle[], p: Palette) {
+  return toChartData(candles, p).volume.map((v) => ({ ...v, time: asTime(v.time * 1000) }));
+}
+
+/** Every token-driven color on the chart, so a theme switch can re-apply it. */
+function applyPalette(
+  chart: IChartApi,
+  candles: ISeriesApi<"Candlestick">,
+  p: Palette,
+) {
+  chart.applyOptions({
+    layout: {
+      background: { type: ColorType.Solid, color: p.surface },
+      textColor: p.text,
+      fontFamily: p.font,
+    },
+    grid: { vertLines: { color: p.grid }, horzLines: { color: p.grid } },
+    rightPriceScale: { borderColor: p.border },
+    timeScale: { borderColor: p.border },
+    crosshair: {
+      vertLine: { color: p.crosshair, labelBackgroundColor: p.label },
+      horzLine: { color: p.crosshair, labelBackgroundColor: p.label },
+    },
+  });
+  candles.applyOptions({
+    upColor: p.up,
+    downColor: p.down,
+    borderUpColor: p.up,
+    borderDownColor: p.down,
+    wickUpColor: p.up,
+    wickDownColor: p.down,
+  });
+}
+
 export default function PriceChart({
   candles,
   liveCandle,
@@ -78,6 +116,7 @@ export default function PriceChart({
   const candleRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volumeRef = useRef<ISeriesApi<"Histogram"> | null>(null);
   const paletteRef = useRef<Palette | null>(null);
+  const candlesRef = useRef<Candle[]>(candles);
 
   // Create once; remove everything on unmount.
   useEffect(() => {
@@ -89,39 +128,16 @@ export default function PriceChart({
     const chart = createChart(el, {
       autoSize: true, // ResizeObserver; follows the container
       layout: {
-        background: { type: ColorType.Solid, color: p.surface },
-        textColor: p.text,
-        fontFamily: p.font,
         fontSize: 12,
         // Required attribution for the library's license.
         attributionLogo: true,
       },
-      grid: {
-        vertLines: { color: p.grid },
-        horzLines: { color: p.grid },
-      },
-      rightPriceScale: { borderColor: p.border },
-      timeScale: {
-        borderColor: p.border,
-        secondsVisible: false,
-        rightOffset: 4,
-      },
-      crosshair: {
-        mode: CrosshairMode.Normal,
-        vertLine: { color: p.crosshair, labelBackgroundColor: p.label },
-        horzLine: { color: p.crosshair, labelBackgroundColor: p.label },
-      },
+      timeScale: { secondsVisible: false, rightOffset: 4 },
+      crosshair: { mode: CrosshairMode.Normal },
       localization: { locale: "en-US" },
     });
 
-    const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: p.up,
-      downColor: p.down,
-      borderUpColor: p.up,
-      borderDownColor: p.down,
-      wickUpColor: p.up,
-      wickDownColor: p.down,
-    });
+    const candleSeries = chart.addSeries(CandlestickSeries);
     candleSeries.priceScale().applyOptions({
       scaleMargins: { top: 0.08, bottom: 0.26 },
     });
@@ -138,8 +154,26 @@ export default function PriceChart({
     chartRef.current = chart;
     candleRef.current = candleSeries;
     volumeRef.current = volumeSeries;
+    applyPalette(chart, candleSeries, p);
+
+    // Theme switch (next-themes toggles the class on <html>): re-read the
+    // tokens and recolor in place. The chart, its zoom and the selected
+    // timeframe are untouched.
+    const observer = new MutationObserver(() => {
+      const next = readPalette();
+      if (paletteRef.current && samePalette(paletteRef.current, next)) return;
+      paletteRef.current = next;
+      applyPalette(chart, candleSeries, next);
+      // Volume bar colors live in the data, so recolor those bars.
+      volumeSeries.setData(volumeData(candlesRef.current, next));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
 
     return () => {
+      observer.disconnect();
       chartRef.current = null;
       candleRef.current = null;
       volumeRef.current = null;
@@ -149,15 +183,14 @@ export default function PriceChart({
 
   // Full data: on load and timeframe change.
   useEffect(() => {
+    candlesRef.current = candles;
     const p = paletteRef.current;
     if (!p || !candleRef.current || !volumeRef.current) return;
     const data = toChartData(candles, p);
     candleRef.current.setData(
       data.candles.map((c) => ({ ...c, time: asTime(c.time * 1000) })),
     );
-    volumeRef.current.setData(
-      data.volume.map((v) => ({ ...v, time: asTime(v.time * 1000) })),
-    );
+    volumeRef.current.setData(volumeData(candles, p));
     chartRef.current?.timeScale().fitContent();
   }, [candles]);
 

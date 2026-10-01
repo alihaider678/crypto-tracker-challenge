@@ -18,6 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Absolute URLs for the Open Graph image; set NEXT_PUBLIC_SITE_URL in production.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: {
     default: "CryptoPulse | Live crypto market data",
     template: "%s | CryptoPulse",
@@ -25,11 +27,17 @@ export const metadata: Metadata = {
   description:
     "Live spot prices, 24h movement and candlestick charts for Binance trading pairs.",
   applicationName: "CryptoPulse",
+  openGraph: { type: "website", siteName: "CryptoPulse" },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B0E14",
-  colorScheme: "dark",
+  // Browser UI color: the page background of each theme.
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0C0E13" },
+    { media: "(prefers-color-scheme: light)", color: "#F7F8FA" },
+  ],
+  colorScheme: "dark light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

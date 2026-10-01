@@ -8,7 +8,7 @@ export function Logo({ className }: { className?: string }) {
     <Link
       href="/"
       className={cn(
-        "group inline-flex items-center gap-2 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        "group inline-flex items-center gap-2 rounded-lg transition-opacity outline-none hover:opacity-90 focus-visible:ring-3 focus-visible:ring-ring/50 active:opacity-75",
         className,
       )}
     >

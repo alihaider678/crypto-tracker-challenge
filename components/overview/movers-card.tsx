@@ -81,7 +81,7 @@ const MoverRow = memo(function MoverRow({ ticker: t, rank }: { ticker: Ticker; r
         href={`/coin/${t.symbol}`}
         prefetch={false}
         aria-label={`${t.name}, ${pairLabel(t)}`}
-        className="flex h-[52px] items-center gap-3 px-4 transition-colors outline-none hover:bg-elevated/60 focus-visible:bg-elevated focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset"
+        className="flex h-[52px] items-center gap-3 px-4 transition-colors outline-none hover:bg-elevated/60 active:bg-elevated focus-visible:bg-elevated focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset"
       >
         <span className="w-4 shrink-0 text-xs text-muted-foreground tabular-nums">{rank}</span>
         <div className="min-w-0 flex-1">
@@ -119,7 +119,7 @@ const VolumeTile = memo(function VolumeTile({ ticker: t, rank }: { ticker: Ticke
         href={`/coin/${t.symbol}`}
         prefetch={false}
         aria-label={`${t.name}, ${pairLabel(t)}`}
-        className="flex h-full items-center justify-between gap-3 px-4 py-3 transition-colors outline-none hover:bg-elevated/60 focus-visible:bg-elevated focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:flex-col sm:items-stretch sm:justify-start sm:py-4"
+        className="flex h-full items-center justify-between gap-3 px-4 py-3 transition-colors outline-none hover:bg-elevated/60 active:bg-elevated focus-visible:bg-elevated focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset sm:flex-col sm:items-stretch sm:justify-start sm:py-4"
       >
         <div className="flex min-w-0 items-center gap-2">
           <span className="text-xs text-muted-foreground tabular-nums">{rank}</span>

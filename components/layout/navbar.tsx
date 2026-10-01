@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
+import { CommandPalette } from "./command-palette";
 import { LiveConnectionBadge } from "./connection-badge";
 import { Logo } from "./logo";
 import { NAV_LINKS, isActivePath } from "./nav-links";
@@ -23,6 +25,7 @@ import { ThemeToggle } from "./theme-toggle";
 
 export function Navbar() {
   const pathname = usePathname();
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
@@ -38,7 +41,7 @@ export function Navbar() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative inline-flex h-8 items-center rounded-lg px-3 text-sm font-medium transition-colors outline-none hover:bg-elevated hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
+                  "relative inline-flex h-8 items-center rounded-lg px-3 text-sm font-medium transition-colors outline-none hover:bg-elevated hover:text-foreground active:bg-border/60 focus-visible:ring-3 focus-visible:ring-ring/50",
                   active ? "text-foreground" : "text-muted-foreground",
                 )}
               >
@@ -55,12 +58,13 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <SearchTrigger />
+          <SearchTrigger onOpen={() => setPaletteOpen(true)} />
           <LiveConnectionBadge className="hidden sm:inline-flex" />
           <ThemeToggle />
           <MobileNav pathname={pathname} />
         </div>
       </div>
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </header>
   );
 }
@@ -86,7 +90,7 @@ function MobileNav({ pathname }: { pathname: string }) {
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex h-10 items-center rounded-lg px-3 text-sm font-medium transition-colors outline-none hover:bg-elevated focus-visible:ring-3 focus-visible:ring-ring/50",
+                    "flex h-10 items-center rounded-lg px-3 text-sm font-medium transition-colors outline-none hover:bg-elevated active:bg-border/60 focus-visible:ring-3 focus-visible:ring-ring/50",
                     active
                       ? "bg-elevated text-foreground"
                       : "text-muted-foreground",

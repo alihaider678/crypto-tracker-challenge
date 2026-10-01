@@ -82,7 +82,7 @@ export function ChartSection({
                 key={tf}
                 value={tf}
                 aria-label={TIMEFRAME_LABELS[tf]}
-                className="px-3 text-xs tabular-nums data-active:bg-elevated"
+                className="px-3 text-xs tabular-nums hover:bg-elevated/60 active:bg-border/60 data-active:bg-elevated"
               >
                 {tf}
               </TabsTrigger>

@@ -24,17 +24,13 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { Direction, QuoteOption, SortKey } from "@/lib/market";
 import { SORT_OPTIONS, type MarketParams } from "@/lib/market-params";
-import {
-  consumeMarketSearchHash,
-  onMarketSearchFocusRequest,
-} from "@/lib/search-focus";
 import { cn } from "@/lib/utils";
 
 const ALL_QUOTES = "ALL";
 const SEARCH_DEBOUNCE_MS = 250;
 
 const PILL_CLASS =
-  "h-7 rounded-full border border-transparent px-3 text-xs text-muted-foreground hover:bg-elevated hover:text-foreground data-[state=on]:border-border data-[state=on]:bg-elevated data-[state=on]:text-foreground";
+  "h-7 rounded-full border border-transparent px-3 text-xs text-muted-foreground hover:bg-elevated hover:text-foreground active:bg-border/60 data-[state=on]:border-border data-[state=on]:bg-elevated data-[state=on]:text-foreground";
 
 type ChangeFn = (patch: Partial<MarketParams>, options?: { replace?: boolean }) => void;
 
@@ -98,15 +94,6 @@ function SearchInput({ value, onChange }: { value: string; onChange: ChangeFn })
     return () => clearTimeout(timer);
   }, [text, value, onChange]);
 
-  // Navbar search box / Ctrl+K focus this input.
-  useEffect(() => {
-    if (consumeMarketSearchHash()) inputRef.current?.focus();
-    return onMarketSearchFocusRequest(() => {
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    });
-  }, []);
-
   return (
     <div className="relative md:w-72 lg:w-80">
       <Search
@@ -130,7 +117,7 @@ function SearchInput({ value, onChange }: { value: string; onChange: ChangeFn })
             setText("");
           }
         }}
-        className="h-9 bg-surface pr-9 pl-8 [&::-webkit-search-cancel-button]:hidden"
+        className="h-9 bg-surface pr-9 pl-8 hover:border-muted-foreground/40 [&::-webkit-search-cancel-button]:hidden"
       />
       {text && (
         <Button
@@ -180,7 +167,7 @@ function DirectionControl({
         <ToggleGroupItem
           key={d.value}
           value={d.value}
-          className="h-9 px-3 text-muted-foreground data-[state=on]:bg-elevated data-[state=on]:text-foreground"
+          className="h-9 px-3 text-muted-foreground active:bg-border/60 data-[state=on]:bg-elevated data-[state=on]:text-foreground"
         >
           {d.label}
         </ToggleGroupItem>
@@ -202,7 +189,7 @@ function SortSelect({
     <Select value={value} onValueChange={(v) => onChange(v as SortKey)}>
       <SelectTrigger
         aria-label="Sort by"
-        className="h-9 min-w-0 flex-1 bg-surface md:w-56 md:flex-none [&>span]:truncate"
+        className="h-9 min-w-0 flex-1 bg-surface hover:bg-elevated active:bg-border/60 md:w-56 md:flex-none [&>span]:truncate"
       >
         <SelectValue />
       </SelectTrigger>

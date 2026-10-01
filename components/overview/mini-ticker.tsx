@@ -66,7 +66,7 @@ const MiniTickerRow = memo(function MiniTickerRow({ ticker: t }: { ticker: Ticke
         href={`/coin/${t.symbol}`}
         prefetch={false}
         aria-label={`${t.name}, ${pairLabel(t)}${halted ? ", trading halted" : ""}`}
-        className="flex h-14 items-center gap-3 px-4 transition-colors outline-none hover:bg-elevated/60 focus-visible:bg-elevated focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset"
+        className="flex h-14 items-center gap-3 px-4 transition-colors outline-none hover:bg-elevated/60 active:bg-elevated focus-visible:bg-elevated focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset"
       >
         <CoinIcon key={t.baseAsset} baseAsset={t.baseAsset} size={28} />
         <span className="font-medium">{t.baseAsset}</span>

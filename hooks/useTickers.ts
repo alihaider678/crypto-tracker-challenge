@@ -1,6 +1,11 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
-import { fetchAllTickers24hr, fetchTicker24hr, shouldRetry } from "@/lib/binance";
+import {
+  fetchAllSymbols,
+  fetchAllTickers24hr,
+  fetchTicker24hr,
+  shouldRetry,
+} from "@/lib/binance";
 import { listedTickers, normalizeTicker, normalizeTickers } from "@/lib/market";
 import type { Ticker } from "@/lib/types";
 
@@ -71,5 +76,18 @@ export function useCoinTicker(symbol: string, initial?: InitialTicker | null) {
     // When the server fetched it, not when the pair last traded: a halted
     // pair's data is old but was fetched just now.
     initialDataUpdatedAt: initial?.fetchedAt,
+  });
+}
+
+// --- Symbol existence ---------------------------------------------------
+
+/** Set of every symbol Binance knows; changes rarely, so cached for 30 min. */
+export function allSymbolsQueryOptions() {
+  return queryOptions({
+    queryKey: ["symbols", "all"] as const,
+    queryFn: async ({ signal }) => new Set(await fetchAllSymbols(signal)),
+    staleTime: 30 * 60_000,
+    gcTime: 60 * 60_000,
+    retry: shouldRetry,
   });
 }

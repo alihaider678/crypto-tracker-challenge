@@ -48,7 +48,7 @@ function MoverCell({
           <Link
             href={`/coin/${t.symbol}`}
             prefetch={false}
-            className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 rounded-sm outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 rounded-sm outline-none hover:underline active:opacity-80 focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <span className="truncate text-base font-semibold">{t.baseAsset}</span>
             {value === "change" ? (

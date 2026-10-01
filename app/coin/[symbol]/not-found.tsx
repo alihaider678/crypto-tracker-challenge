@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SearchX } from "lucide-react";
 
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
+
+export const metadata: Metadata = { title: "Pair not found" };
 
 export default function CoinNotFound() {
   return (

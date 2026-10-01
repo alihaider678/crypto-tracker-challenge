@@ -8,6 +8,8 @@ import { LiveStatusNotice } from "@/components/market/live-status-notice";
 import { useLiveTickers } from "@/hooks/useLiveTickers";
 import { useTickers } from "@/hooks/useTickers";
 import { PINNED_SYMBOL, overviewData, pickBySymbol } from "@/lib/market";
+import { reveal } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 
 import { CtaBand } from "./cta-band";
 import { FeaturedCard, FeaturedCardSkeleton } from "./featured-card";
@@ -59,7 +61,13 @@ export function OverviewSections() {
           {data && (
             <LiveStatusNotice status={status} lastUpdatedAt={tickers.dataUpdatedAt} />
           )}
-          {overview ? <SummaryStrip data={overview} /> : <SummaryStripSkeleton />}
+          {overview ? (
+            <div className={reveal}>
+              <SummaryStrip data={overview} />
+            </div>
+          ) : (
+            <SummaryStripSkeleton />
+          )}
         </div>
 
         <section aria-labelledby="today-heading" className="space-y-5">
@@ -72,10 +80,10 @@ export function OverviewSections() {
             </p>
           </div>
           <div className={BENTO}>
-            <div className={AREA.featured}>
+            <div className={cn(AREA.featured, data && reveal)}>
               {data ? <FeaturedCard ticker={featured} /> : <FeaturedCardSkeleton />}
             </div>
-            <div className={AREA.gainers}>
+            <div className={cn(AREA.gainers, overview && reveal)}>
               {overview ? (
                 <MoversCard
                   title="Top gainers"
@@ -87,7 +95,7 @@ export function OverviewSections() {
                 <MoversCardSkeleton />
               )}
             </div>
-            <div className={AREA.losers}>
+            <div className={cn(AREA.losers, overview && reveal)}>
               {overview ? (
                 <MoversCard
                   title="Top losers"
@@ -99,7 +107,7 @@ export function OverviewSections() {
                 <MoversCardSkeleton />
               )}
             </div>
-            <div className={AREA.volume}>
+            <div className={cn(AREA.volume, overview && reveal)}>
               {overview ? (
                 <VolumeCard icon={BarChart3} tickers={overview.movers.volume} />
               ) : (

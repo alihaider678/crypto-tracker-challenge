@@ -11,4 +11,8 @@ Full design spec: `CRYPTO_DASHBOARD_REDESIGN.md`. The old Vite app lives in `leg
 - **Numbers:** use the `num` class (mono, tabular) for prices and figures, and format them with `lib/format.ts`.
 - **Layout:** wrap page content in `container-page`.
 - **Data:** all Binance calls go through `lib/binance.ts`. Market rules (listing, search, sort, VANRY pinning) live in `lib/market.ts`; use `selectMarketView` instead of re-implementing them. No data fetching in presentational components.
+- **Themes:** dark is the default (`:root`); light overrides the base tokens under `html.light`. Add a token to both. `__tests__/theme-contrast.test.ts` checks WCAG AA for both themes from `globals.css`; keep it passing. Canvas code (the chart) must read tokens at runtime and re-read them on theme change.
+- **Interaction states:** custom links/buttons need hover, `focus-visible` ring (`ring-3 ring-ring/50`), and a pressed state (`active:bg-border/60` or `active:bg-elevated` on rows). Disabled comes from the shadcn primitives.
+- **Motion:** only `reveal` from `lib/motion.ts` (motion-safe fade/slide when content first renders). No page transitions or exit animations.
+- **Binance in the browser:** 4xx responses have no CORS header, so client-side errors can't tell "invalid symbol" from "offline". Check symbol existence with `allSymbolsQueryOptions` instead of requesting unknown symbols.
 - Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` before calling a phase done.

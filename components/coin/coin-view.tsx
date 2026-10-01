@@ -2,13 +2,15 @@
 
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 
 import { ErrorState } from "@/components/feedback/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLiveTickers } from "@/hooks/useLiveTickers";
-import { useCoinTicker, type InitialTicker } from "@/hooks/useTickers";
+import { allSymbolsQueryOptions, useCoinTicker, type InitialTicker } from "@/hooks/useTickers";
 import { BinanceError } from "@/lib/binance";
 import { isTradingHalted } from "@/lib/market";
+import { reveal } from "@/lib/motion";
 import { useWatchlistHydration } from "@/store/watchlist";
 
 import { ChartSection } from "./chart-section";
@@ -32,7 +34,13 @@ export function CoinView({
   useLiveTickers();
   useWatchlistHydration();
 
-  if (query.error instanceof BinanceError && query.error.isInvalidSymbol) {
+  // In the browser an invalid symbol looks like a network error (Binance's
+  // 4xx responses have no CORS header), so on failure check the symbol list.
+  const known = useQuery({ ...allSymbolsQueryOptions(), enabled: query.isError });
+  if (
+    (query.error instanceof BinanceError && query.error.isInvalidSymbol) ||
+    (query.isError && known.data && !known.data.has(symbol))
+  ) {
     notFound();
   }
 
@@ -54,7 +62,7 @@ export function CoinView({
   const halted = isTradingHalted(t);
 
   return (
-    <div className="space-y-6 md:space-y-8">
+    <div className={`space-y-6 md:space-y-8 ${reveal}`}>
       <CoinHeader ticker={t} halted={halted} />
       {halted && <HaltedBanner lastTradeAt={t.updatedAt} />}
       {/* ChartSection reads ?tf= (useSearchParams). */}

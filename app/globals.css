@@ -13,7 +13,9 @@
  *     shadcn uses --accent for neutral hover fills in menus and lists.
  *   - shadcn's --accent points at --elevated.
  *
- * Dark is the only theme for now; light values arrive in Phase 7.
+ * Dark is the default (:root). Light overrides the base tokens under
+ * html.light (set by next-themes); the shadcn aliases follow automatically.
+ * __tests__/theme-contrast.test.ts checks both themes against WCAG AA.
  */
 :root {
   /* surfaces */
@@ -33,9 +35,10 @@
 
   /* semantic market colors: price movement ONLY */
   --positive: 152 69% 45%;
-  --negative: 0 84% 62%;
+  /* 64% (spec: 62%) so red text on its own tint stays >= 4.5:1 on cards */
+  --negative: 0 84% 64%;
   --positive-bg: 152 69% 45% / 0.12;
-  --negative-bg: 0 84% 62% / 0.12;
+  --negative-bg: 0 84% 64% / 0.12;
 
   /* shadcn aliases, all derived from the tokens above */
   --card: var(--surface);
@@ -51,6 +54,32 @@
   --input: var(--border);
 
   --radius: 8px;
+}
+
+html.light {
+  /* surfaces */
+  --background: 220 20% 97%;
+  --surface: 0 0% 100%;
+  --elevated: 220 18% 95%;
+  --border: 220 14% 87%;
+
+  /* text */
+  --foreground: 222 28% 11%;
+  --muted-foreground: 220 10% 38%;
+
+  /* darker teal so teal text and the white button label pass AA */
+  --primary: 174 84% 23%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 174 72% 36%;
+
+  /* darker green/red for text on light backgrounds */
+  --positive: 152 76% 26%;
+  --negative: 0 72% 42%;
+  --positive-bg: 152 70% 40% / 0.12;
+  --negative-bg: 0 80% 55% / 0.1;
+
+  /* popovers and menus sit on white in light mode */
+  --popover: var(--surface);
 }
 
 @theme inline {
@@ -170,6 +199,9 @@
   html {
     @apply font-sans;
     color-scheme: dark;
+  }
+  html.light {
+    color-scheme: light;
   }
   body {
     @apply bg-background text-foreground text-sm antialiased md:text-base;

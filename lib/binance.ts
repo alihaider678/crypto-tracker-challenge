@@ -33,7 +33,11 @@ export class BinanceError extends Error {
     this.name = "BinanceError";
   }
 
-  /** Binance rejected the symbol (code -1121). */
+  /**
+   * Binance rejected the symbol (code -1121). Only detectable on the server:
+   * Binance's 4xx responses carry no CORS header, so in the browser they
+   * surface as network errors (status 0). Browsers check fetchAllSymbols.
+   */
   get isInvalidSymbol(): boolean {
     return this.code === -1121;
   }
@@ -108,6 +112,15 @@ export function fetchTicker24hr(
     { symbol: symbol.toUpperCase() },
     signal,
   );
+}
+
+/**
+ * Every symbol Binance knows, trading or not (~3,700, about 150 KB). The
+ * browser's way to tell "not a Binance pair" from "network trouble".
+ */
+export async function fetchAllSymbols(signal?: AbortSignal): Promise<string[]> {
+  const rows = await getJson<{ symbol: string }[]>("/ticker/price", {}, signal);
+  return rows.map((r) => r.symbol);
 }
 
 // --- Klines -------------------------------------------------------------

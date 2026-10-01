@@ -130,7 +130,7 @@ function SortableTh({
         type="button"
         onClick={() => onSort(nextSortForColumn(sort, column))}
         className={cn(
-          "-mx-1.5 inline-flex h-7 items-center gap-1 rounded-lg px-1.5 transition-colors outline-none hover:bg-elevated hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
+          "-mx-1.5 inline-flex h-7 items-center gap-1 rounded-lg px-1.5 transition-colors outline-none hover:bg-elevated active:bg-border/60 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
           state && "text-foreground",
           alignRight && "flex-row-reverse",
         )}
@@ -175,8 +175,8 @@ const MarketRow = memo(function MarketRow({
     <TableRow
       onClick={onRowClick}
       className={cn(
-        "h-[52px] cursor-pointer border-border hover:bg-elevated/60",
-        featured && "bg-primary/[0.04] hover:bg-primary/[0.08]",
+        "h-[52px] cursor-pointer border-border hover:bg-elevated/60 active:bg-elevated",
+        featured && "bg-primary/[0.04] hover:bg-primary/[0.08] active:bg-primary/[0.12]",
       )}
     >
       <TableCell className={cn(CELL_CLASS, COLUMN_CLASS.star)}>

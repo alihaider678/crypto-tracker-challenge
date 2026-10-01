@@ -21,6 +21,7 @@ import {
   hasActiveFilters,
   updateMarketParams,
 } from "@/lib/market-params";
+import { reveal } from "@/lib/motion";
 import { useWatchlistHydration } from "@/store/watchlist";
 
 import { LiveStatusNotice } from "./live-status-notice";
@@ -93,7 +94,7 @@ export function MarketsView() {
     );
   } else {
     body = (
-      <div className="space-y-4">
+      <div className={`space-y-4 ${reveal}`}>
         <MarketTable
           rows={page.items}
           firstRank={page.from}

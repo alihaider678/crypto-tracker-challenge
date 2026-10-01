@@ -15,38 +15,8 @@ export function parseTimeframe(value: string | null | undefined): Timeframe {
 
 // --- Colors -------------------------------------------------------------
 
-/**
- * Converts a design token's HSL channels ("172 66% 50%" or
- * "152 69% 45% / 0.12") to "rgba(r, g, b, a)". The chart draws on canvas
- * and doesn't parse CSS variables or space-separated hsl(), so token colors
- * are converted here. `alpha` multiplies the token's own alpha.
- */
-export function hslTokenToRgba(token: string, alpha = 1): string | null {
-  const match = token
-    .trim()
-    .match(/^(-?[\d.]+)\s+([\d.]+)%\s+([\d.]+)%(?:\s*\/\s*([\d.]+))?$/);
-  if (!match) return null;
-
-  const h = (((Number(match[1]) % 360) + 360) % 360) / 60;
-  const s = Number(match[2]) / 100;
-  const l = Number(match[3]) / 100;
-  const a = (match[4] === undefined ? 1 : Number(match[4])) * alpha;
-
-  const c = (1 - Math.abs(2 * l - 1)) * s;
-  const x = c * (1 - Math.abs((h % 2) - 1));
-  const m = l - c / 2;
-  const [r, g, b] =
-    h < 1 ? [c, x, 0]
-    : h < 2 ? [x, c, 0]
-    : h < 3 ? [0, c, x]
-    : h < 4 ? [0, x, c]
-    : h < 5 ? [x, 0, c]
-    : [c, 0, x];
-
-  const to255 = (v: number) => Math.round((v + m) * 255);
-  const alphaText = Math.round(a * 1000) / 1000;
-  return `rgba(${to255(r)}, ${to255(g)}, ${to255(b)}, ${alphaText})`;
-}
+// Token -> rgba lives in lib/color; re-exported for the chart's callers.
+export { hslTokenToRgba } from "./color";
 
 // --- Data ---------------------------------------------------------------
 
